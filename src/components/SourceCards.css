@@ -1,0 +1,241 @@
+.sources-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.section-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.source-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-normal);
+  overflow: hidden;
+}
+
+.source-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--accent-green);
+}
+
+.source-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.source-icon {
+  width: 52px; height: 52px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.solar-icon { background: rgba(212, 160, 23, 0.12); color: var(--solar-color); }
+.wind-icon { background: rgba(14, 116, 144, 0.12); color: var(--wind-color); }
+.tidal-icon { background: rgba(21, 101, 192, 0.12); color: var(--tidal-color); }
+.hydro-icon { background: rgba(0, 131, 143, 0.12); color: var(--hydro-color); }
+.biomass-icon { background: rgba(46, 125, 50, 0.12); color: var(--biomass-color); }
+.geothermal-icon { background: rgba(230, 81, 0, 0.12); color: var(--geothermal-color); }
+
+.source-header h3 { font-size: 1rem; font-weight: 700; }
+
+.source-status {
+  font-size: 0.7rem; font-weight: 600;
+  padding: 2px 8px; border-radius: 10px;
+  display: inline-block;
+}
+.source-status.online { background: rgba(53, 184, 102, 0.12); color: var(--accent-teal); }
+
+/* ── Generation Control (slider + editable value) ── */
+.source-gen-control {
+  margin-bottom: 14px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.source-gen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.source-gen-header .stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Editable value */
+.editable-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--accent-green);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.editable-value:hover {
+  background: var(--accent-green-dim);
+  border-color: var(--accent-green);
+}
+
+.edit-pencil {
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  color: var(--text-muted);
+}
+
+.editable-value:hover .edit-pencil {
+  opacity: 1;
+}
+
+.editable-active {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.editable-input {
+  width: 80px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--accent-green);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-green-dim);
+  animation: editPop 0.2s ease;
+}
+
+@keyframes editPop {
+  from { transform: scale(0.95); }
+  to { transform: scale(1); }
+}
+
+.editable-unit {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Source slider */
+.source-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  outline: none;
+  margin-bottom: 4px;
+}
+
+.source-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  transition: transform var(--transition-fast);
+}
+
+.source-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.3);
+}
+
+.solar-slider::-webkit-slider-thumb { background: var(--solar-color); }
+.wind-slider::-webkit-slider-thumb { background: var(--wind-color); }
+.tidal-slider::-webkit-slider-thumb { background: var(--tidal-color); }
+.hydro-slider::-webkit-slider-thumb { background: var(--hydro-color); }
+.biomass-slider::-webkit-slider-thumb { background: var(--biomass-color); }
+.geothermal-slider::-webkit-slider-thumb { background: var(--geothermal-color); }
+
+.source-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+/* Stats grid */
+.source-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.source-stat { display: flex; flex-direction: column; }
+
+.stat-label {
+  font-size: 0.68rem; font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.stat-value { font-size: 1rem; font-weight: 700; }
+
+.stat-high { color: var(--accent-green); }
+.stat-mid { color: var(--accent-yellow); }
+.stat-low { color: var(--accent-orange); }
+
+/* Bar */
+.source-bar {
+  width: 100%; height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.source-bar-fill {
+  height: 100%; border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.solar-bar { background: var(--solar-color); }
+.wind-bar { background: var(--wind-color); }
+.tidal-bar { background: var(--tidal-color); }
+.hydro-bar { background: var(--hydro-color); }
+.biomass-bar { background: var(--biomass-color); }
+.geothermal-bar { background: var(--geothermal-color); }
+
+@media (max-width: 1100px) { .sources-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) {
+  .sources-grid { grid-template-columns: 1fr; }
+  .section-actions { flex-direction: column; align-items: flex-start; }
+}

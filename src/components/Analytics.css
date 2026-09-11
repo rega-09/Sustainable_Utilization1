@@ -1,0 +1,112 @@
+/* ================================================================
+   Analytics CSS
+   ================================================================ */
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.contrib-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contrib-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.contrib-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.contrib-val {
+  color: var(--text-muted);
+}
+
+.contrib-track {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.contrib-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+/* Distribution Flow */
+.dist-flow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 100%;
+}
+
+.dist-node {
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gen-node {
+  border-color: var(--accent-green);
+  background: var(--accent-green-dim);
+}
+
+.target-node {
+  min-width: 160px;
+}
+
+.dist-val {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.dist-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.text-blue {
+  color: var(--accent-blue) !important;
+}
+
+.dist-arrows {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 120px;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+}
+
+.dist-targets {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+@media (max-width: 600px) {
+  .dist-flow { flex-direction: column; }
+  .dist-arrows { flex-direction: row; height: auto; width: 100%; justify-content: space-around; transform: rotate(90deg); }
+}

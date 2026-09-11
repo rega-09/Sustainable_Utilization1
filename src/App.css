@@ -1,0 +1,195 @@
+/* ================================================================
+   App.css — Layout & Shared Component Styles
+   Light Green & White Theme
+   ================================================================ */
+
+.main-content {
+  margin-top: calc(var(--nav-height) + var(--tricolour-height));
+  padding: 28px 32px;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 48px;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.section-header h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--accent-green);
+  border-left: 4px solid var(--accent-saffron);
+  padding-left: 12px;
+}
+
+.dashboard-intro {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  max-width: 900px;
+  line-height: 1.7;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-green);
+  padding: 6px 16px;
+  background: var(--accent-green-dim);
+  border: 1px solid rgba(45, 138, 78, 0.15);
+  border-radius: 20px;
+}
+
+.pulse {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  animation: pulse 1.5s infinite;
+}
+
+/* Dashboard grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 20px;
+}
+
+/* Cards (shared) */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.card:hover {
+  border-color: rgba(45, 138, 78, 0.25);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, var(--bg-secondary), var(--bg-card));
+}
+
+.card-header h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.card-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* Buttons (shared) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-green), var(--accent-green-light));
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(45, 138, 78, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(45, 138, 78, 0.3);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  background: var(--accent-green-dim);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 8px 14px;
+  font-size: 0.78rem;
+}
+
+.btn-outline:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  background: var(--accent-green-dim);
+}
+
+/* Government-style footer */
+.govt-footer {
+  background: #17231A;
+  color: #C2D1C5;
+  text-align: center;
+  padding: 24px;
+  font-size: 0.78rem;
+  margin-top: 40px;
+  border-top: 1px solid var(--border-color);
+}
+
+.govt-footer a {
+  color: var(--accent-blue);
+  text-decoration: none;
+}
+
+.govt-footer-line {
+  margin-bottom: 4px;
+}
+
+.govt-footer-line strong {
+  color: #FFFFFF;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .main-content { padding: 16px; }
+  .section-header h1 { font-size: 1.3rem; }
+}

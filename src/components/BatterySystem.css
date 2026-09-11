@@ -1,0 +1,138 @@
+/* ================================================================
+   BatterySystem — Multiple batteries per hub styling
+   ================================================================ */
+
+.battery-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 20px;
+}
+
+.bat-hub-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bat-agg-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.bat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.bat-row-id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bat-icon {
+  font-size: 1.4rem;
+}
+
+.bat-row-id strong {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+
+.bat-status-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.bat-status-idle { background: var(--bg-secondary); color: var(--text-muted); }
+.bat-status-standby { background: var(--bg-secondary); color: var(--text-muted); }
+.bat-status-charging { background: var(--accent-green-dim); color: var(--accent-green); }
+.bat-status-discharging { background: var(--accent-orange-dim); color: var(--accent-orange); }
+
+.bat-row-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bat-row-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bat-row-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.bat-row-pct {
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 40px;
+  text-align: right;
+}
+
+.bat-row-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  border-top: 1px dashed var(--border-color);
+  padding-top: 6px;
+}
+
+.bat-row-health, .bat-row-temp {
+  font-weight: 600;
+}
+
+.mt-3 {
+  margin-top: 16px;
+}
+
+.battery-controls .bat-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-charge { background: var(--accent-green); color: var(--text-primary); border: 1px solid var(--accent-green); }
+.btn-discharge { background: var(--accent-orange-dim); color: var(--accent-orange); border: 1px solid transparent; }
+.btn-stop { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); }
+
+.btn-charge:hover { background: var(--accent-green-light); color: white; border-color: var(--accent-green-light); }
+.btn-discharge:hover { background: var(--accent-orange); color: white; border-color: var(--accent-orange); }
+.btn-stop:hover { background: var(--bg-secondary); }
+
+@media (max-width: 600px) {
+  .battery-hub-grid {
+    grid-template-columns: 1fr;
+  }
+}

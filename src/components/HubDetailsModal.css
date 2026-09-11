@@ -1,0 +1,120 @@
+/* ================================================================
+   HubDetailsModal — Detailed Hub Modal Styling
+   ================================================================ */
+
+.hub-modal {
+  max-width: 600px;
+  width: 90%;
+}
+
+.badge-online {
+  background: rgba(53, 184, 102, 0.12);
+  color: var(--accent-teal);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.hub-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.hub-stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.h-stat-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.h-stat-val {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.text-orange { color: var(--accent-orange); }
+.text-blue { color: var(--accent-blue); }
+.text-green { color: var(--accent-green); }
+
+.hub-modal-section {
+  margin-bottom: 20px;
+}
+
+.hub-modal-section h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 6px;
+}
+
+.hub-source-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hub-source-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.h-src-name { font-size: 0.8rem; font-weight: 600; flex: 1; }
+.h-src-val { font-size: 0.8rem; font-weight: 800; width: 80px; text-align: right; }
+.h-src-status { font-size: 0.7rem; font-weight: 700; width: 100px; text-align: right; }
+
+.hub-bat-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.h-bat-bar-wrap {
+  width: 100%;
+  height: 12px;
+  background: var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.h-bat-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s;
+}
+
+.h-bat-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 500px) {
+  .hub-stats-grid { grid-template-columns: 1fr; }
+}

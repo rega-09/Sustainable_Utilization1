@@ -1,0 +1,233 @@
+/* ================================================================
+   SolarSimulationPanel CSS
+   ================================================================ */
+
+.solar-sim-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+  margin-top: 24px;
+  animation: fadeInUp 0.4s ease;
+}
+
+.sim-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.sim-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sim-title h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.sim-badge {
+  background: var(--accent-green-dim);
+  color: var(--accent-green);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Controls */
+.sim-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.sim-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sim-btn:hover {
+  background: var(--bg-card);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.sim-btn.active {
+  background: var(--accent-green);
+  color: white;
+  border-color: var(--accent-green);
+}
+
+.sim-select {
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Info Bar */
+.sim-info-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.sim-info-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.si-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.si-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.si-status {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 8px;
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.si-status.night { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); }
+.si-status.low { background: var(--accent-blue-dim); color: var(--accent-blue); }
+.si-status.medium { background: var(--accent-saffron); color: white; }
+.si-status.high { background: var(--accent-green-dim); color: var(--accent-green); }
+.si-status.peak { background: var(--accent-green); color: white; }
+
+/* Graph */
+.sim-graph-container {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 20px 16px 30px 16px;
+  overflow: hidden;
+}
+
+.sim-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sim-curve {
+  fill: var(--accent-green-dim);
+  stroke: var(--accent-green);
+  stroke-width: 2px;
+}
+
+.sim-indicator-line {
+  stroke: var(--text-primary);
+  stroke-width: 2px;
+  stroke-dasharray: 4 4;
+}
+
+.sim-indicator-dot {
+  fill: var(--accent-green);
+  stroke: white;
+  stroke-width: 2px;
+}
+
+.sim-interactive-area {
+  fill: transparent;
+  cursor: crosshair;
+}
+
+/* Graph Labels */
+.sim-axis-label {
+  position: absolute;
+  bottom: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  transform: translateX(-50%);
+}
+
+.sim-axis-label:first-of-type { transform: translateX(0); left: 16px !important; }
+.sim-axis-label:last-of-type { transform: translateX(-100%); right: 16px !important; }
+
+/* Tooltip */
+.sim-tooltip {
+  position: absolute;
+  background: var(--text-primary);
+  color: white;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  pointer-events: none;
+  transform: translate(-50%, -120%);
+  box-shadow: var(--shadow-card-hover);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.st-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.st-label { color: rgba(255,255,255,0.7); }
+.st-val { font-weight: 700; }
+
+.sim-indicator-dot-html {
+  position: absolute;
+  width: 10px; height: 10px;
+  background: var(--accent-green);
+  border: 2px solid white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .sim-controls { flex-wrap: wrap; }
+  .sim-header { flex-direction: column; align-items: flex-start; }
+}

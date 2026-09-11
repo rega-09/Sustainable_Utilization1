@@ -1,0 +1,199 @@
+/* ================================================================
+   MaintenanceAlerts — Alert card styling
+   ================================================================ */
+
+.maint-card {
+  margin-bottom: 24px;
+}
+
+.maint-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.maint-summary {
+  display: flex;
+  gap: 6px;
+}
+
+.maint-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.maint-badge-ok {
+  background: rgba(53, 184, 102, 0.12);
+  color: var(--accent-teal);
+}
+
+.maint-badge-critical {
+  background: var(--accent-red-dim);
+  color: var(--accent-red);
+}
+
+.maint-badge-warning {
+  background: var(--accent-orange-dim);
+  color: var(--accent-orange);
+}
+
+.maint-badge-total {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+}
+
+.maint-empty {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.maint-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.maint-item {
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-left: 4px solid;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  transition: all var(--transition-fast);
+}
+
+.maint-item:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.maint-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.maint-sev-icon {
+  font-size: 0.9rem;
+}
+
+.maint-item-label {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.maint-sev-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.maint-item-desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.maint-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.maint-item-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.maint-item-meta strong {
+  color: var(--text-secondary);
+}
+
+.maint-item-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.maint-btn {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.maint-btn-resolve {
+  background: rgba(53, 184, 102, 0.12);
+  color: var(--accent-teal);
+}
+
+.maint-btn-resolve:hover {
+  background: var(--accent-teal);
+  color: #fff;
+}
+
+.maint-btn-dismiss {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+}
+
+.maint-btn-dismiss:hover {
+  background: var(--accent-red-dim);
+  color: var(--accent-red);
+}
+
+/* Resolved */
+.maint-resolved {
+  opacity: 0.6;
+  border-left-color: var(--accent-teal) !important;
+}
+
+.maint-resolved .maint-item-label {
+  text-decoration: line-through;
+}
+
+.maint-resolved-section {
+  margin-top: 12px;
+}
+
+.maint-resolved-toggle {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.maint-resolved-toggle:hover {
+  color: var(--text-secondary);
+}
+
+.maint-resolved-list {
+  margin-top: 8px;
+}
+
+.maint-item-time {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 600px) {
+  .maint-item-footer { flex-direction: column; align-items: flex-start; }
+  .maint-header-left { flex-direction: column; align-items: flex-start; }
+}
