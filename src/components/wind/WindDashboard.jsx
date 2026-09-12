@@ -47,7 +47,7 @@ const WindHero = ({ data }) => {
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
-          LIVE • Weather data updated every 3 seconds • {new Date().toLocaleTimeString()}
+          LIVE • Weather data updated every 5 minutes • {new Date().toLocaleTimeString()}
         </div>
       </div>
     </section>
