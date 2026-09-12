@@ -47,7 +47,7 @@ const WindHero = ({ data }) => {
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
-          LIVE • Updated every 3 seconds • {new Date().toLocaleTimeString()}
+          LIVE • Weather data updated every 3 seconds • {new Date().toLocaleTimeString()}
         </div>
       </div>
     </section>
@@ -115,11 +115,11 @@ const EnergyProduction = ({ data }) => {
               <div style={{fontSize: '1.8rem', fontWeight: 800, color: '#0ea5e9'}}>{data.energy_production} kW</div>
             </div>
             <div className="wind-card">
-              <div style={{fontSize: '0.8rem', color: '#64748b', fontWeight: 700}}>TODAY</div>
+              <div style={{fontSize: '0.8rem', color: '#64748b', fontWeight: 700}}>TODAY (Estimated)</div>
               <div style={{fontSize: '1.8rem', fontWeight: 800}}>{data.today_energy} kWh</div>
             </div>
             <div className="wind-card">
-              <div style={{fontSize: '0.8rem', color: '#64748b', fontWeight: 700}}>THIS MONTH</div>
+              <div style={{fontSize: '0.8rem', color: '#64748b', fontWeight: 700}}>THIS MONTH (Estimated)</div>
               <div style={{fontSize: '1.8rem', fontWeight: 800}}>{data.month_energy} kWh</div>
             </div>
             <div className="wind-card">
@@ -420,8 +420,41 @@ const WindFarmAndDispatch = ({ data }) => {
 // Main Dashboard Container
 // ==========================================
 export default function WindDashboard() {
-  const windData = useWindData();
+  const { data: windData, loading, error } = useWindData();
 
+  if (loading || !windData) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "1.2rem",
+          fontWeight: 700,
+        }}
+      >
+        Loading live wind data...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#C53030",
+          fontWeight: 700,
+        }}
+      >
+        Unable to load wind data: {error}
+      </div>
+    );
+  }
   return (
     <div className="wind-page">
       <WindHero data={windData} />
