@@ -1,152 +1,411 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
-// Utility to add slight random fluctuations
-const fluctuate = (base, variance) => {
-  return base + (Math.random() * variance * 2 - variance);
-};
+const LATITUDE = 22.806580;
+const LONGITUDE = 85.993019;
+
+// Assumed plant capacity for the SIH prototype
+const PLANT_CAPACITY_KW = 500;
+
+// Performance ratio used to estimate actual PV output
+const PERFORMANCE_RATIO = 0.90;
+
+const WEATHER_API =
+  `https://api.open-meteo.com/v1/forecast?` +
+  `latitude=${LATITUDE}` +
+  `&longitude=${LONGITUDE}` +
+  `&current=temperature_2m,relative_humidity_2m,cloud_cover,wind_speed_10m,rain,shortwave_radiation` +
+  `&hourly=temperature_2m,relative_humidity_2m,cloud_cover,wind_speed_10m,shortwave_radiation` +
+  `&past_days=31` +
+  `&forecast_days=1` +
+  `&timezone=auto`;
 
 export function useSolarData() {
-  const [data, setData] = useState(() => {
-    // Generate realistic daily curve for chart
-    const history = [];
-    let currentHour = new Date().getHours();
-    
-    for (let i = 0; i < 24; i++) {
-      let expected = 0;
-      let actual = 0;
-      
-      if (i > 5 && i < 19) {
-        // Simple bell curve for solar generation
-        const x = (i - 12) / 3.5;
-        const factor = Math.exp(-(x * x));
-        expected = factor * 500; // max 500kW
-        actual = expected * (0.85 + Math.random() * 0.1); // slightly less
-        
-        // Add a dip if it's afternoon to simulate clouds
-        if (i === 14 || i === 15) {
-            actual *= 0.7;
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchSolarData = async () => {
+    try {
+      setError(null);
+
+      const response = await fetch(WEATHER_API);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch weather data");
+      }
+
+      const result = await response.json();
+
+      const current = result.current;
+      const hourly = result.hourly;
+
+      // --------------------------------------------------
+      // 1. CURRENT SOLAR RADIATION
+      // --------------------------------------------------
+
+      const sunlight = current.shortwave_radiation ?? 0;
+
+      // --------------------------------------------------
+      // 2. CONVERT SOLAR RADIATION TO ESTIMATED PV POWER
+      // --------------------------------------------------
+
+      const currentPower =
+        Math.max(
+          0,
+          (sunlight / 1000) *
+          PLANT_CAPACITY_KW *
+          PERFORMANCE_RATIO
+        );
+
+      // --------------------------------------------------
+      // 3. FIND TODAY'S HOURLY DATA
+      // --------------------------------------------------
+
+      const today = new Date();
+
+      const todayDate = new Intl.DateTimeFormat("en-CA", {
+        timeZone: result.timezone,
+      }).format(today);
+
+      const todayIndexes = [];
+
+      hourly.time.forEach((time, index) => {
+        const date = time.slice(0, 10);
+
+        if (date === todayDate) {
+          todayIndexes.push(index);
+        }
+      });
+
+      // --------------------------------------------------
+      // 4. GENERATION HISTORY FOR TODAY
+      // --------------------------------------------------
+
+      const generationHistory = todayIndexes.map(
+        (index) => {
+          const time = hourly.time[index];
+
+          const radiation =
+            hourly.shortwave_radiation?.[index] ?? 0;
+
+          const expectedPower =
+            Math.max(
+              0,
+              (radiation / 1000) *
+              PLANT_CAPACITY_KW
+            );
+
+          const actualPower =
+            expectedPower *
+            PERFORMANCE_RATIO;
+
+          return {
+            time: new Date(time).toLocaleTimeString(
+              [],
+              {
+                hour: "2-digit",
+                minute: "2-digit",
+              }
+            ),
+
+            expected: Math.round(
+              expectedPower
+            ),
+
+            actual: Math.round(
+              actualPower
+            ),
+          };
+        }
+      );
+
+      // --------------------------------------------------
+      // 5. TODAY'S ENERGY
+      // --------------------------------------------------
+      // Each hourly power value represents approximately
+      // one hour of generation.
+      //
+      // kWh = kW × hours
+
+      const todayEnergy = todayIndexes.reduce(
+        (total, index) => {
+          const radiation =
+            hourly.shortwave_radiation?.[index] ?? 0;
+
+          const power =
+            Math.max(
+              0,
+              (radiation / 1000) *
+              PLANT_CAPACITY_KW *
+              PERFORMANCE_RATIO
+            );
+
+          return total + power;
+        },
+        0
+      );
+
+      // --------------------------------------------------
+      // 6. MONTH-TO-DATE ENERGY
+      // --------------------------------------------------
+
+      const currentMonth =
+        today.getMonth();
+
+      const currentYear =
+        today.getFullYear();
+
+      let monthEnergy = 0;
+
+      hourly.time.forEach(
+        (time, index) => {
+          const date = new Date(time);
+
+          if (
+            date.getMonth() === currentMonth &&
+            date.getFullYear() === currentYear
+          ) {
+            const radiation =
+              hourly.shortwave_radiation?.[
+              index
+              ] ?? 0;
+
+            const power =
+              Math.max(
+                0,
+                (radiation / 1000) *
+                PLANT_CAPACITY_KW *
+                PERFORMANCE_RATIO
+              );
+
+            monthEnergy += power;
+          }
+        }
+      );
+
+      // --------------------------------------------------
+      // 7. CREATE 5-MINUTE HEATMAP
+      // --------------------------------------------------
+      // Open-Meteo gives us hourly radiation.
+      // We interpolate between hourly values to create
+      // 288 five-minute points for the dashboard.
+
+      const generationMap = [];
+
+      for (let hour = 0; hour < 24; hour++) {
+        const currentHourIndex =
+          todayIndexes[hour];
+
+        const nextHourIndex =
+          todayIndexes[hour + 1];
+
+        const currentRadiation =
+          currentHourIndex !== undefined
+            ? hourly.shortwave_radiation?.[
+            currentHourIndex
+            ] ?? 0
+            : 0;
+
+        const nextRadiation =
+          nextHourIndex !== undefined
+            ? hourly.shortwave_radiation?.[
+            nextHourIndex
+            ] ?? currentRadiation
+            : currentRadiation;
+
+        // 12 x 5-minute intervals per hour
+        for (
+          let step = 0;
+          step < 12;
+          step++
+        ) {
+          const fraction = step / 12;
+
+          const radiation =
+            currentRadiation +
+            (nextRadiation -
+              currentRadiation) *
+            fraction;
+
+          const intensity = Math.min(
+            100,
+            Math.max(
+              0,
+              radiation / 10
+            )
+          );
+
+          generationMap.push(
+            intensity
+          );
         }
       }
-      
-      history.push({
-        time: `${i.toString().padStart(2, '0')}:00`,
-        expected: Math.max(0, Math.round(expected)),
-        actual: i <= currentHour ? Math.max(0, Math.round(actual)) : null,
+
+      // Make sure we have exactly 288 slots
+      while (
+        generationMap.length < 288
+      ) {
+        generationMap.push(0);
+      }
+
+      generationMap.length = 288;
+
+      // --------------------------------------------------
+      // 8. ELECTRICAL ESTIMATES
+      // --------------------------------------------------
+
+      const dcVoltage = 812;
+
+      const dcCurrent =
+        currentPower > 0
+          ? (currentPower * 1000) /
+          dcVoltage
+          : 0;
+
+      const acPower =
+        currentPower * 0.98;
+
+      const acVoltage = 415;
+
+      const acCurrent =
+        acPower > 0
+          ? (acPower * 1000) /
+          (acVoltage * Math.sqrt(3))
+          : 0;
+
+      // --------------------------------------------------
+      // 9. UPDATE DASHBOARD DATA
+      // --------------------------------------------------
+
+      setData({
+        // Environmental
+        temperature:
+          current.temperature_2m ?? 0,
+
+        humidity:
+          current.relative_humidity_2m ?? 0,
+
+        cloud_cover:
+          current.cloud_cover ?? 0,
+
+        sunlight_intensity:
+          Math.round(sunlight),
+
+        wind_speed:
+          current.wind_speed_10m ?? 0,
+
+        rainfall:
+          current.rain ?? 0,
+
+        // Panel condition
+        panel_temperature:
+          (current.temperature_2m ?? 0) +
+          (sunlight / 1000) * 15,
+
+        days_since_cleaning: 0,
+
+        cleaning_required: false,
+
+        // DC
+        dc_voltage: dcVoltage,
+
+        dc_current: Number(
+          dcCurrent.toFixed(1)
+        ),
+
+        dc_power: Number(
+          currentPower.toFixed(1)
+        ),
+
+        // AC
+        ac_voltage: acVoltage,
+
+        ac_current: Number(
+          acCurrent.toFixed(1)
+        ),
+
+        ac_power: Number(
+          acPower.toFixed(1)
+        ),
+
+        frequency: 50,
+
+        power_factor: 0.98,
+
+        // Strings
+        string_voltage: 810,
+
+        string_current: 8.5,
+
+        active_strings: 62,
+
+        faulty_strings: 0,
+
+        // Generation
+        energy_production:
+          Math.round(currentPower),
+
+        today_energy: Number(
+          todayEnergy.toFixed(1)
+        ),
+
+        month_energy: Number(
+          monthEnergy.toFixed(1)
+        ),
+
+        // We will handle lifetime generation
+        // separately once PVGIS is added.
+        total_energy: 0,
+
+        expected_generation:
+          Math.round(
+            (sunlight / 1000) *
+            PLANT_CAPACITY_KW
+          ),
+
+        actual_generation:
+          Math.round(currentPower),
+
+        plant_efficiency:
+          sunlight > 0
+            ? PERFORMANCE_RATIO * 100
+            : 0,
+
+        plant_health: 95,
+
+        // Charts
+        generationHistory,
+
+        generationMap,
       });
-    }
-    
-    // Generate 288 5-min slots for map
-    const mapSlots = [];
-    for(let i=0; i<288; i++) {
-        let intensity = 0;
-        const hour = i * 5 / 60;
-        if(hour > 6 && hour < 18) {
-            const x = (hour - 12) / 3;
-            intensity = Math.exp(-(x * x)) * 100; // 0 to 100
-            // add some cloud noise
-            if(hour > 13 && hour < 15) intensity -= 20; 
-        }
-        mapSlots.push(Math.max(0, intensity));
-    }
+    } catch (err) {
+      console.error(
+        "Solar API error:",
+        err
+      );
 
-    return {
-      // Environmental
-      temperature: 32.6,
-      humidity: 64,
-      cloud_cover: 18,
-      sunlight_intensity: 782, // W/m^2
-      wind_speed: 14.2,
-      rainfall: 2.4, // mm
-      
-      // Panel condition
-      panel_temperature: 46.1,
-      days_since_cleaning: 24,
-      cleaning_required: true,
-      
-      // Electrical DC
-      dc_voltage: 812.5,
-      dc_current: 526.4,
-      dc_power: 427.6, // kW
-      
-      // Electrical AC
-      ac_voltage: 415.2,
-      ac_current: 596.1,
-      ac_power: 421.3, // kW
-      frequency: 50.01,
-      power_factor: 0.98,
-      
-      // String Monitoring
-      string_voltage: 810.2,
-      string_current: 8.5,
-      active_strings: 62,
-      faulty_strings: 2, // e.g. String #04 issue
-      
-      // Generation
-      energy_production: 428, // kW current
-      today_energy: 3.82, // kWh
-      month_energy: 86.4,
-      total_energy: 2840, // kWh (2.84 GWh)
-      
-      expected_generation: 445, // kW
-      actual_generation: 428, // kW
-      
-      plant_efficiency: 91.4,
-      plant_health: 92,
-      
-      // Arrays for charts
-      generationHistory: history,
-      generationMap: mapSlots
-    };
-  });
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Tick every 3 seconds to fluctuate live values
   useEffect(() => {
-    const interval = setInterval(() => {
-      setData(prev => {
-        const newSunlight = Math.max(0, fluctuate(prev.sunlight_intensity, 15));
-        // Cloud cover fluctuates slightly
-        const newCloud = Math.max(0, Math.min(100, fluctuate(prev.cloud_cover, 2)));
-        
-        // DC Power depends on sunlight and clouds
-        const baseExpected = newSunlight * 0.55; 
-        const newActual = baseExpected * (1 - newCloud/200) * (prev.cleaning_required ? 0.92 : 1);
-        
-        const dc_v = fluctuate(812, 5);
-        const dc_p = newActual;
-        const dc_c = (dc_p * 1000) / dc_v;
-        
-        const ac_p = dc_p * 0.98; // inverter efficiency
-        const ac_v = fluctuate(415, 2);
-        const ac_c = (ac_p * 1000) / (ac_v * Math.sqrt(3));
-        const freq = fluctuate(50, 0.05);
+    fetchSolarData();
 
-        return {
-          ...prev,
-          sunlight_intensity: Number(newSunlight.toFixed(0)),
-          cloud_cover: Number(newCloud.toFixed(1)),
-          wind_speed: Number(fluctuate(prev.wind_speed, 1.5).toFixed(1)),
-          
-          dc_voltage: Number(dc_v.toFixed(1)),
-          dc_current: Number(dc_c.toFixed(1)),
-          dc_power: Number(dc_p.toFixed(1)),
-          
-          ac_voltage: Number(ac_v.toFixed(1)),
-          ac_current: Number(ac_c.toFixed(1)),
-          ac_power: Number(ac_p.toFixed(1)),
-          frequency: Number(freq.toFixed(2)),
-          
-          expected_generation: Number(baseExpected.toFixed(0)),
-          actual_generation: Number(dc_p.toFixed(0)),
-          energy_production: Number(dc_p.toFixed(0)), // main KPI
-          
-          plant_efficiency: Number(( (dc_p / baseExpected) * 100 ).toFixed(1))
-        };
-      });
-    }, 3000);
+    // Refresh every 5 minutes
+    const interval = setInterval(
+      fetchSolarData,
+      5 * 60 * 1000
+    );
 
-    return () => clearInterval(interval);
+    return () =>
+      clearInterval(interval);
   }, []);
 
-  return data;
+  return {
+    data,
+    loading,
+    error,
+  };
 }
-

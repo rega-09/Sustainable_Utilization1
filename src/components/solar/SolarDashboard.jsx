@@ -43,7 +43,7 @@ const SolarHero = ({ data }) => {
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
-          Live • Updated every 3 seconds
+          Live • Weather data updated every 5 minutes
         </div>
       </div>
     </section>
@@ -109,11 +109,11 @@ const EnergyProduction = ({ data }) => {
             <div className="env-value text-green">{data.energy_production} kW</div>
           </div>
           <div className="solar-card">
-            <div className="env-label">TODAY</div>
+            <div className="env-label">TODAY (Estimated)</div>
             <div className="env-value">{data.today_energy} kWh</div>
           </div>
           <div className="solar-card">
-            <div className="env-label">THIS MONTH</div>
+            <div className="env-label">THIS MONTH (Estimated)</div>
             <div className="env-value">{data.month_energy} kWh</div>
           </div>
           <div className="solar-card">
@@ -378,7 +378,41 @@ const SystemOverviewVisual = ({ data }) => {
 // Main Dashboard Container
 // ==========================================
 export default function SolarDashboard() {
-  const solarData = useSolarData();
+  const { data: solarData, loading, error } = useSolarData();
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "24px",
+        }}
+      >
+        Loading solar data...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          gap: "10px",
+        }}
+      >
+        <h2>Unable to load solar data</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="solar-page">
