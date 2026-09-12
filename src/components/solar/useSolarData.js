@@ -6,57 +6,7 @@ const fluctuate = (base, variance) => {
 };
 
 export function useSolarData() {
-  const [data, setData] = useState({
-    // Environmental
-    temperature: 32.6,
-    humidity: 64,
-    cloud_cover: 18,
-    sunlight_intensity: 782, // W/m^2
-    wind_speed: 14.2,
-    rainfall: 2.4, // mm
-    
-    // Panel condition
-    panel_temperature: 46.1,
-    days_since_cleaning: 24,
-    cleaning_required: true,
-    
-    // Electrical DC
-    dc_voltage: 812.5,
-    dc_current: 526.4,
-    dc_power: 427.6, // kW
-    
-    // Electrical AC
-    ac_voltage: 415.2,
-    ac_current: 596.1,
-    ac_power: 421.3, // kW
-    frequency: 50.01,
-    power_factor: 0.98,
-    
-    // String Monitoring
-    string_voltage: 810.2,
-    string_current: 8.5,
-    active_strings: 62,
-    faulty_strings: 2, // e.g. String #04 issue
-    
-    // Generation
-    energy_production: 428, // kW current
-    today_energy: 3.82, // kWh
-    month_energy: 86.4,
-    total_energy: 2840, // kWh (2.84 GWh)
-    
-    expected_generation: 445, // kW
-    actual_generation: 428, // kW
-    
-    plant_efficiency: 91.4,
-    plant_health: 92,
-    
-    // Arrays for charts
-    generationHistory: [], // Will populate below
-    generationMap: [] // 288 slots
-  });
-
-  // Initialize History and Heatmap data once
-  useEffect(() => {
+  const [data, setData] = useState(() => {
     // Generate realistic daily curve for chart
     const history = [];
     let currentHour = new Date().getHours();
@@ -99,8 +49,55 @@ export function useSolarData() {
         mapSlots.push(Math.max(0, intensity));
     }
 
-    setData(prev => ({ ...prev, generationHistory: history, generationMap: mapSlots }));
-  }, []);
+    return {
+      // Environmental
+      temperature: 32.6,
+      humidity: 64,
+      cloud_cover: 18,
+      sunlight_intensity: 782, // W/m^2
+      wind_speed: 14.2,
+      rainfall: 2.4, // mm
+      
+      // Panel condition
+      panel_temperature: 46.1,
+      days_since_cleaning: 24,
+      cleaning_required: true,
+      
+      // Electrical DC
+      dc_voltage: 812.5,
+      dc_current: 526.4,
+      dc_power: 427.6, // kW
+      
+      // Electrical AC
+      ac_voltage: 415.2,
+      ac_current: 596.1,
+      ac_power: 421.3, // kW
+      frequency: 50.01,
+      power_factor: 0.98,
+      
+      // String Monitoring
+      string_voltage: 810.2,
+      string_current: 8.5,
+      active_strings: 62,
+      faulty_strings: 2, // e.g. String #04 issue
+      
+      // Generation
+      energy_production: 428, // kW current
+      today_energy: 3.82, // kWh
+      month_energy: 86.4,
+      total_energy: 2840, // kWh (2.84 GWh)
+      
+      expected_generation: 445, // kW
+      actual_generation: 428, // kW
+      
+      plant_efficiency: 91.4,
+      plant_health: 92,
+      
+      // Arrays for charts
+      generationHistory: history,
+      generationMap: mapSlots
+    };
+  });
 
   // Tick every 3 seconds to fluctuate live values
   useEffect(() => {

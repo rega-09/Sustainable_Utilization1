@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { EnergyProvider, useEnergy } from './store/EnergyContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import NotificationPanel from './components/NotificationPanel';
 import KPICards from './components/KPICards';
@@ -11,14 +12,13 @@ import BatterySystem from './components/BatterySystem';
 import Analytics from './components/Analytics';
 import ManualInputModal from './components/ManualInputModal';
 import HubDetailsModal from './components/HubDetailsModal';
-import SolarDashboard from './components/solar/SolarDashboard';
-import WindDashboard from './components/wind/WindDashboard';
-import HydroDashboard from './components/hydro/HydroDashboard';
-import DispatchDashboard from './components/dispatch/DispatchDashboard';
+const SolarDashboard = lazy(() => import('./components/solar/SolarDashboard'));
+const WindDashboard = lazy(() => import('./components/wind/WindDashboard'));
+const HydroDashboard = lazy(() => import('./components/hydro/HydroDashboard'));
+const DispatchDashboard = lazy(() => import('./components/dispatch/DispatchDashboard'));
 import './App.css';
 
 function MainDashboard({
-  activeSection,
   modalOpen,
   setModalOpen,
   hubModalOpen,
@@ -87,7 +87,7 @@ function MainDashboard({
 }
 
 function AppContent() {
-  const { state, dispatch } = useEnergy();
+  const { dispatch } = useEnergy();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'solar' | 'wind' | 'hydro'
   
@@ -165,7 +165,6 @@ function AppContent() {
   if (currentView === 'dashboard') {
     renderedView = (
       <MainDashboard
-        activeSection={activeSection}
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
         hubModalOpen={hubModalOpen}
@@ -196,15 +195,19 @@ function AppContent() {
       />
       <NotificationPanel isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
 
-      {renderedView}
+      <Suspense fallback={<div className="loading-fallback">Loading dashboard view...</div>}>
+        {renderedView}
+      </Suspense>
     </>
   );
 }
 
 export default function App() {
   return (
-    <EnergyProvider>
-      <AppContent />
-    </EnergyProvider>
+    <ErrorBoundary>
+      <EnergyProvider>
+        <AppContent />
+      </EnergyProvider>
+    </ErrorBoundary>
   );
 }

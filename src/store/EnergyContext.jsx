@@ -57,7 +57,6 @@ const ALERT_RULES = [
 ];
 
 /* ── CO2 factor: kg saved per kW-hour equivalent ── */
-const CO2_FACTOR = 0.72;
 
 /* ── Solar Mathematical Simulation Helpers ── */
 export function formatTime(slot) {

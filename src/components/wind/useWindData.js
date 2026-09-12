@@ -6,76 +6,7 @@ const fluctuate = (base, variance) => {
 };
 
 export function useWindData() {
-  const [data, setData] = useState({
-    // Environmental
-    wind_speed: 14.8, // m/s
-    wind_direction: 315, // degrees
-    temperature: 29.4, // °C
-    humidity: 58, // %
-    pressure: 1008, // hPa
-    rainfall: 1.8, // mm
-    air_density: 1.18, // kg/m^3
-    
-    // Mechanical
-    rotor_speed: 18.6, // RPM
-    blade_pitch_angle: 7.2, // degrees
-    yaw_angle: 302, // degrees (slightly misaligned initially)
-    
-    // Temperatures
-    gearbox_temperature: 68,
-    generator_temperature: 71,
-    bearing_temperature: 54,
-    
-    // Vibrations (mm/s)
-    rotor_vibration: 2.8,
-    gearbox_vibration: 3.4,
-    generator_vibration: 1.9,
-    
-    // Electrical - Generator
-    generator_voltage: 690, // V
-    generator_current: 1040, // A
-    generator_power: 1.24, // kW
-    
-    // Electrical - Grid
-    grid_voltage: 415,
-    grid_current: 1720,
-    grid_frequency: 50.0,
-    power_factor: 0.97,
-    
-    // KPIs
-    energy_production: 1.24, // kW
-    today_energy: 18.6, // kWh
-    month_energy: 482, // kWh
-    total_energy: 12800, // kWh (12.8 GWh)
-    
-    expected_generation: 1.35, // kW
-    actual_generation: 1.24, // kW
-    
-    turbine_efficiency: 89.7, // %
-    turbine_health: 94, // %
-    
-    turbine_status: 'ONLINE',
-    maintenance_required: false,
-    
-    // History & Curve data
-    generationHistory: [],
-    powerCurveData: [],
-    
-    // Wind Farm Overview
-    turbines: [
-      { id: 'T01', power: 1.24, status: 'ONLINE', color: '#83f28f' },
-      { id: 'T02', power: 1.18, status: 'ONLINE', color: '#83f28f' },
-      { id: 'T03', power: 0.94, status: 'WARNING', color: '#F5B942' },
-      { id: 'T04', power: 1.27, status: 'ONLINE', color: '#83f28f' },
-      { id: 'T05', power: 0.00, status: 'OFFLINE', color: '#E85D5D' }
-    ],
-    totalAvailablePower: 4.63,
-    currentLoad: 3.82,
-    surplusPower: 0.81
-  });
-
-  // Initialize charts once
-  useEffect(() => {
+  const [data, setData] = useState(() => {
     // 1. Generation History (Area chart over time)
     const history = [];
     let currentHour = new Date().getHours();
@@ -117,9 +48,75 @@ export function useWindData() {
         actual: Number((actualPower * (0.9 + Math.random()*0.1)).toFixed(2))
       });
     }
-    
-    setData(prev => ({ ...prev, generationHistory: history, powerCurveData: curve }));
-  }, []);
+
+    return {
+      // Environmental
+      wind_speed: 14.8, // m/s
+      wind_direction: 315, // degrees
+      temperature: 29.4, // °C
+      humidity: 58, // %
+      pressure: 1008, // hPa
+      rainfall: 1.8, // mm
+      air_density: 1.18, // kg/m^3
+      
+      // Mechanical
+      rotor_speed: 18.6, // RPM
+      blade_pitch_angle: 7.2, // degrees
+      yaw_angle: 302, // degrees (slightly misaligned initially)
+      
+      // Temperatures
+      gearbox_temperature: 68,
+      generator_temperature: 71,
+      bearing_temperature: 54,
+      
+      // Vibrations (mm/s)
+      rotor_vibration: 2.8,
+      gearbox_vibration: 3.4,
+      generator_vibration: 1.9,
+      
+      // Electrical - Generator
+      generator_voltage: 690, // V
+      generator_current: 1040, // A
+      generator_power: 1.24, // kW
+      
+      // Electrical - Grid
+      grid_voltage: 415,
+      grid_current: 1720,
+      grid_frequency: 50.0,
+      power_factor: 0.97,
+      
+      // KPIs
+      energy_production: 1.24, // kW
+      today_energy: 18.6, // kWh
+      month_energy: 482, // kWh
+      total_energy: 12800, // kWh (12.8 GWh)
+      
+      expected_generation: 1.35, // kW
+      actual_generation: 1.24, // kW
+      
+      turbine_efficiency: 89.7, // %
+      turbine_health: 94, // %
+      
+      turbine_status: 'ONLINE',
+      maintenance_required: false,
+      
+      // History & Curve data
+      generationHistory: history,
+      powerCurveData: curve,
+      
+      // Wind Farm Overview
+      turbines: [
+        { id: 'T01', power: 1.24, status: 'ONLINE', color: '#83f28f' },
+        { id: 'T02', power: 1.18, status: 'ONLINE', color: '#83f28f' },
+        { id: 'T03', power: 0.94, status: 'WARNING', color: '#F5B942' },
+        { id: 'T04', power: 1.27, status: 'ONLINE', color: '#83f28f' },
+        { id: 'T05', power: 0.00, status: 'OFFLINE', color: '#E85D5D' }
+      ],
+      totalAvailablePower: 4.63,
+      currentLoad: 3.82,
+      surplusPower: 0.81
+    };
+  });
 
   // Live simulation tick every 3 seconds
   useEffect(() => {

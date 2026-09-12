@@ -5,67 +5,7 @@ const fluctuate = (base, variance) => {
 };
 
 export function useHydroData() {
-  const [data, setData] = useState({
-    // Seasons: MONSOON, POST-MONSOON, WINTER, SUMMER
-    season: 'MONSOON', 
-    
-    // Environmental / Rainfall
-    rainfall: 18.4, // mm
-    daily_rainfall: 42.5,
-    monthly_rainfall: 315.2,
-    temperature: 27.8,
-    humidity: 76,
-    
-    // Water Flow & Reservoir
-    water_inflow: 185, // m3/s
-    water_outflow: 142,
-    river_flow: 160,
-    turbine_flow: 142, // m3/s
-    
-    reservoir_level: 82, // %
-    reservoir_volume: 7.6, // million m3
-    water_pressure: 8.6, // bar
-    
-    // Mechanical
-    turbine_speed: 312, // RPM
-    guide_vane_position: 72, // %
-    bearing_temperature: 54, // °C
-    generator_temperature: 68, // °C
-    shaft_vibration: 2.1, // mm/s
-    
-    // Electrical (Generator & Grid)
-    generator_voltage: 6.6, // kV
-    generator_current: 738, // A
-    generator_power: 8.42, // kW
-    
-    grid_voltage: 33, // kV
-    grid_current: 145, // A
-    grid_frequency: 50.0,
-    power_factor: 0.98,
-    
-    // KPIs
-    energy_production: 8.42, // kW
-    expected_generation: 9.10, // kW
-    actual_generation: 8.42, // kW
-    
-    hydraulic_efficiency: 94.2, // %
-    turbine_efficiency: 92.5, // %
-    plant_efficiency: 91.8, // %
-    plant_health: 93, // %
-    
-    // Renewable Coordination (Mocking other sources)
-    solar_power: 4.28,
-    wind_power: 3.62,
-    battery_power: -2.10, // negative means charging
-    total_renewable: 16.32,
-    current_load: 14.22, // total load demand
-    
-    generationHistory: [],
-    generationMap24h: []
-  });
-
-  // Initialize charts and 24-hour map once
-  useEffect(() => {
+  const [data, setData] = useState(() => {
     // 1. Generation History (Line/Area chart over time)
     const history = [];
     let currentHour = new Date().getHours();
@@ -102,9 +42,66 @@ export function useHydroData() {
         isCurrent: i === currentSlot
       });
     }
-    
-    setData(prev => ({ ...prev, generationHistory: history, generationMap24h: map24h }));
-  }, []);
+
+    return {
+      // Seasons: MONSOON, POST-MONSOON, WINTER, SUMMER
+      season: 'MONSOON', 
+      
+      // Environmental / Rainfall
+      rainfall: 18.4, // mm
+      daily_rainfall: 42.5,
+      monthly_rainfall: 315.2,
+      temperature: 27.8,
+      humidity: 76,
+      
+      // Water Flow & Reservoir
+      water_inflow: 185, // m3/s
+      water_outflow: 142,
+      river_flow: 160,
+      turbine_flow: 142, // m3/s
+      
+      reservoir_level: 82, // %
+      reservoir_volume: 7.6, // million m3
+      water_pressure: 8.6, // bar
+      
+      // Mechanical
+      turbine_speed: 312, // RPM
+      guide_vane_position: 72, // %
+      bearing_temperature: 54, // °C
+      generator_temperature: 68, // °C
+      shaft_vibration: 2.1, // mm/s
+      
+      // Electrical (Generator & Grid)
+      generator_voltage: 6.6, // kV
+      generator_current: 738, // A
+      generator_power: 8.42, // kW
+      
+      grid_voltage: 33, // kV
+      grid_current: 145, // A
+      grid_frequency: 50.0,
+      power_factor: 0.98,
+      
+      // KPIs
+      energy_production: 8.42, // kW
+      expected_generation: 9.10, // kW
+      actual_generation: 8.42, // kW
+      
+      hydraulic_efficiency: 94.2, // %
+      turbine_efficiency: 92.5, // %
+      plant_efficiency: 91.8, // %
+      plant_health: 93, // %
+      
+      // Renewable Coordination (Mocking other sources)
+      solar_power: 4.28,
+      wind_power: 3.62,
+      battery_power: -2.10, // negative means charging
+      total_renewable: 16.32,
+      current_load: 14.22, // total load demand
+      
+      generationHistory: history,
+      generationMap24h: map24h
+    };
+  });
 
   // Live simulation tick every 5 seconds
   useEffect(() => {

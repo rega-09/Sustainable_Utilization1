@@ -8,7 +8,7 @@ const SEVERITY_STYLES = {
   normal:   { color: '#2e7d32', bg: 'rgba(46,125,50,0.08)', label: '🟢 NORMAL' },
 };
 
-export default function NotificationPanel({ isOpen, onClose }) {
+export default function NotificationPanel({ isOpen }) {
   const { state, dispatch } = useEnergy();
 
   const handleMarkRead = (id) => {

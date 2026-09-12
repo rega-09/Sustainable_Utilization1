@@ -212,7 +212,6 @@ export function useDispatchEngine() {
 
           if (remaining_surplus > 0) {
             // Charge battery
-            let space_left = newState.battery_capacity - (newState.battery_capacity * newState.battery_soc / 100);
             let charge = Math.min(remaining_surplus, 5.0); // max charge rate 5 kW
             battery_pwr = -charge; // negative = charging
             remaining_surplus -= charge;
