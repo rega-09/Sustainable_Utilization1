@@ -2,7 +2,7 @@ import { useEnergy, getTotalGeneration, getSurplus, SOURCES, HUBS, getHubGenerat
 import { useState, useRef, useEffect, useCallback } from 'react';
 import './EnergyHubFlow.css';
 
-export default function EnergyHubFlow({ onHubClick }) {
+export default function EnergyHubFlow({ onHubClick, onNavigate }) {
   const { state } = useEnergy();
   const totalGen = getTotalGeneration(state);
   const surplus = getSurplus(state);
@@ -78,7 +78,7 @@ export default function EnergyHubFlow({ onHubClick }) {
       const hubEl = getRect(hubRefs.current[hubId]);
       const batEl = getRect(batRefs.current[hubId]);
       if (!hubEl || !batEl) return;
-      
+
       const isDischarging = state.hubs[hubId].batteries.some(b => b.status === 'discharging');
 
       if (isDischarging) {
@@ -201,7 +201,7 @@ export default function EnergyHubFlow({ onHubClick }) {
           <span className="card-subtitle">Real-time collection, storage, and distribution grid</span>
         </div>
         <div className="card-body">
-          
+
           <div className="hub-flow-diagram-v3" ref={diagramRef}>
 
             {/* SVG Overlay */}
@@ -218,12 +218,24 @@ export default function EnergyHubFlow({ onHubClick }) {
                     const src = state.sources[sk];
                     const meta = SOURCES[sk];
                     const hasAlert = src.maintenanceStatus !== 'Normal';
+
+                    // Map source keys to route names
+                    const getRouteForSource = (key) => {
+                      if (key.includes('solar')) return 'solar';
+                      if (key.includes('wind')) return 'wind';
+                      if (key.includes('hydro')) return 'hydro';
+                      return null;
+                    };
+                    const route = getRouteForSource(sk);
+
                     return (
                       <div
                         className="hf-source-item-v3"
                         key={sk}
                         ref={el => sourceRefs.current[sk] = el}
-                        style={{ borderLeftColor: meta.color }}
+                        style={{ borderLeftColor: meta.color, cursor: route ? 'pointer' : 'default' }}
+                        onClick={() => route && onNavigate && onNavigate(route)}
+                        title={route ? `Go to ${meta.label} Dashboard` : ''}
                       >
                         <span className="hf-icon-v3">{meta.icon}</span>
                         <div className="hf-info-v3">
@@ -246,7 +258,7 @@ export default function EnergyHubFlow({ onHubClick }) {
                 const hubGen = getHubGeneration(state, hubId);
                 const hub = state.hubs[hubId];
                 const activeBats = hub.batteries.filter(b => b.status === 'charging' || b.status === 'discharging').length;
-                
+
                 return (
                   <div className="hf-collector-wrapper" key={hubId}>
                     <div
@@ -290,7 +302,7 @@ export default function EnergyHubFlow({ onHubClick }) {
 
             {/* COL 3: Grid + Power Plant */}
             <div className="hf-col-v3 hf-grid-col">
-              
+
               {/* National Grid */}
               <div className="hf-grid-node-v3" ref={gridRef}>
                 <div className="hf-grid-icon-v3">🏗️</div>
@@ -318,8 +330,8 @@ export default function EnergyHubFlow({ onHubClick }) {
                 const icons = ['🏭', '🏢', '🏠', '🏫', '🏥'];
                 const labels = ['Industrial Load', 'Commercial Load', 'Residential Load', 'Campus Load', 'Critical Load'];
                 return (
-                  <div 
-                    className="hf-load-node-v3" 
+                  <div
+                    className="hf-load-node-v3"
                     key={region.name}
                     ref={el => loadsRefs.current[region.name] = el}
                   >
@@ -345,3 +357,4 @@ export default function EnergyHubFlow({ onHubClick }) {
     </div>
   );
 }
+

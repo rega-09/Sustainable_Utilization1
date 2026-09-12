@@ -7,21 +7,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg-primary: #F0F5F0;
-  --bg-secondary: #E3EFE4;
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #F8FAF8;
-  --bg-glass: rgba(255, 255, 255, 0.95);
-  --bg-nav: #FFFFFF;
-  --text-primary: #17231A;
-  --text-secondary: #2B3A30;
-  --text-muted: #4A5A4D;
-  
+  --bg-primary: #F4F7F6;
+  --bg-secondary: #E8ECEF;
+  --bg-card: rgba(230, 235, 240, 0.95);
+  --bg-card-hover: rgba(215, 220, 225, 1);
+  --bg-glass: rgba(230, 235, 240, 0.95);
+  --bg-nav: rgba(255, 255, 255, 0.9);
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-muted: #111111;
+
   --accent-green: #83F28F;
   --accent-green-light: #4CAF68;
   --accent-green-dim: rgba(131, 242, 143, 0.15);
   --accent-green-soft: rgba(131, 242, 143, 0.25);
-  
+
   --accent-teal: #35B866;
   --accent-blue: #4DA3FF;
   --accent-blue-dim: rgba(77, 163, 255, 0.1);
@@ -33,36 +33,55 @@
   --accent-purple: #8B5CF6;
   --accent-yellow: #F59E0B;
   --accent-pink: #EC4899;
-  
+
   --accent-saffron: #FF9933;
   --india-green: #138808;
   --ashoka-blue: #000080;
-  
+
   --solar-color: #F5B942;
-  --wind-color: #0EA5E9;
+  --wind-color: #4CAF68;
   --tidal-color: #3B82F6;
   --hydro-color: #4DA3FF;
   --biomass-color: #4CAF68;
   --geothermal-color: #E85D5D;
-  
-  --border-color: #C2D1C5;
-  --border-glow: rgba(131, 242, 143, 0.4);
-  
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05);
-  --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.08);
+
+  --border-color: #475569;
+  --border-glow: rgba(131, 242, 143, 0.8);
+
+  --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.3), 0 0 1px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 6px 12px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 4px 20px rgba(131, 242, 143, 0.2);
-  
+
   --nav-height: 72px;
   --tricolour-height: 4px;
-  
+
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
-  
+
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
   --transition-slow: 0.4s ease;
+}
+
+[data-theme='dark'] {
+  --bg-primary: #050505;
+  --bg-secondary: #121212;
+  --bg-card: rgba(0, 0, 0, 0.9);
+  --bg-card-hover: rgba(5, 5, 5, 0.95);
+  --bg-glass: rgba(0, 0, 0, 0.95);
+  --bg-nav: rgba(10, 10, 10, 0.85);
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-muted: #71717A;
+
+  --border-color: rgba(255, 255, 255, 0.4);
+  --border-glow: rgba(131, 242, 143, 0.6);
+
+  --shadow-card: 0 4px 8px rgba(0, 0, 0, 1), 0 0 1px rgba(0, 0, 0, 1);
+  --shadow-card-hover: 0 8px 16px rgba(0, 0, 0, 1), 0 0 1px rgba(0, 0, 0, 1);
+  --shadow-glow: 0 4px 20px rgba(131, 242, 143, 0.1);
 }
 
 *,
@@ -86,6 +105,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 /* Tricolour stripe at the very top */
@@ -124,10 +144,12 @@ body::before {
 /* Global Utilities */
 .card {
   background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), background-color var(--transition-normal), border-color var(--transition-normal);
 }
 
 .card:hover {

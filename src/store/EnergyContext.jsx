@@ -2,9 +2,9 @@ import { createContext, useContext, useReducer } from 'react';
 
 /* ── Source definitions ── */
 export const SOURCES = {
-  solar:      { label: 'Solar Farm',    icon: '☀️', color: 'var(--solar-color)', capacity: 800 },
-  wind:       { label: 'Wind Farm',     icon: '💨', color: 'var(--wind-color)', capacity: 600 },
-  hydro:      { label: 'Hydro Plant',   icon: '💧', color: 'var(--hydro-color)', capacity: 500 },
+  solar: { label: 'Solar Farm', icon: '☀️', color: 'var(--solar-color)', capacity: 800 },
+  wind: { label: 'Wind Farm', icon: '💨', color: 'var(--wind-color)', capacity: 600 },
+  hydro: { label: 'Hydro Plant', icon: '💧', color: 'var(--hydro-color)', capacity: 500 },
 };
 
 /* ── Hub definitions ── */
@@ -70,13 +70,13 @@ export function formatTime(slot) {
 export function calculateSolarIntensity(slot, cloudFactor, maxIntensity, sunrise, sunset) {
   const t = slot * 5;
   if (t < sunrise || t > sunset) return 0;
-  
+
   const midpoint = (sunrise + sunset) / 2;
   const halfWidth = (sunset - sunrise) / 2;
-  
+
   // Sine curve normalized to 0-1
   const curve = Math.cos(((t - midpoint) / halfWidth) * (Math.PI / 2));
-  
+
   // Apply cloud factor
   const actualIntensity = Math.max(0, maxIntensity * curve * cloudFactor);
   return actualIntensity;
@@ -91,26 +91,26 @@ const initialState = {
     sunrise: 360,     // 06:00
     sunset: 1110,     // 18:30
     maxIntensity: 1000,
-    cloudFactor: 1.0, 
+    cloudFactor: 1.0,
     isPlaying: false,
     speedMs: 1000,
     intensity: 1000,  // Initial 12:00 value (assuming clear day)
   },
   // 1. Data Collection: Generation Sources
   sources: {
-    solar:      { generation: 450, capacity: 800, panels: 12000, efficiency: 92, maintenanceStatus: 'Normal' },
-    wind:       { generation: 320, capacity: 600, turbines: 120, efficiency: 88, maintenanceStatus: 'Normal' },
-    hydro:      { generation: 280, capacity: 500, efficiency: 95, maintenanceStatus: 'Normal' },
+    solar: { generation: 450, capacity: 800, panels: 12000, efficiency: 92, maintenanceStatus: 'Normal' },
+    wind: { generation: 320, capacity: 600, turbines: 120, efficiency: 88, maintenanceStatus: 'Normal' },
+    hydro: { generation: 280, capacity: 500, efficiency: 95, maintenanceStatus: 'Normal' },
   },
-  
+
   // 2. Data Collection: Consumption
   consumption: 1200,
   regions: [
     { name: 'Northern Region', demand: 312 },
     { name: 'Southern Region', demand: 260 },
-    { name: 'Eastern Region',  demand: 208 },
-    { name: 'Western Region',  demand: 180 },
-    { name: 'Central Region',  demand: 240 },
+    { name: 'Eastern Region', demand: 208 },
+    { name: 'Western Region', demand: 180 },
+    { name: 'Central Region', demand: 240 },
   ],
 
   // 3. Storage & Distribution: Hubs & Batteries
@@ -142,7 +142,7 @@ const initialState = {
     battery: [],
     timestamps: [],
   },
-  
+
   // 6. Logging & Alert System
   logs: [],
   notifications: [
@@ -198,9 +198,9 @@ function energyReducer(state, action) {
       const sim = state.solarSimulation;
       const intensity = calculateSolarIntensity(slot, sim.cloudFactor, sim.maxIntensity, sim.sunrise, sim.sunset);
       const generation = 800 * (intensity / sim.maxIntensity); // Capacity is 800
-      
+
       const newSources = { ...state.sources, solar: { ...state.sources.solar, generation } };
-      
+
       return {
         ...state,
         sources: newSources,
@@ -213,7 +213,7 @@ function energyReducer(state, action) {
       const sim = state.solarSimulation;
       const intensity = calculateSolarIntensity(sim.currentSlot, cloudFactor, sim.maxIntensity, sim.sunrise, sim.sunset);
       const generation = 800 * (intensity / sim.maxIntensity);
-      
+
       const newSources = { ...state.sources, solar: { ...state.sources.solar, generation } };
 
       return {
@@ -228,23 +228,23 @@ function energyReducer(state, action) {
       const nextSlot = (sim.currentSlot + 1) % 288;
       const intensity = calculateSolarIntensity(nextSlot, sim.cloudFactor, sim.maxIntensity, sim.sunrise, sim.sunset);
       const generation = 800 * (intensity / sim.maxIntensity);
-      
+
       const newSources = { ...state.sources, solar: { ...state.sources.solar, generation } };
-      
+
       // We must calculate totalGen and distribute to batteries, just like SIMULATE_TICK
       let totalGen = Object.values(newSources).reduce((acc, src) => acc + src.generation, 0);
       const surplus = totalGen - state.consumption;
-      
+
       const newHubs = { ...state.hubs };
       Object.entries(HUBS).forEach(([hubId, hubDef]) => {
         const hubGen = hubDef.sources.reduce((s, sk) => s + newSources[sk].generation, 0);
         const hubShare = hubGen / Math.max(1, totalGen);
-        const hubTarget = surplus * hubShare * 0.2; 
-        
+        const hubTarget = surplus * hubShare * 0.2;
+
         let remainingTarget = Math.abs(hubTarget);
         const newBatteries = newHubs[hubId].batteries.map(bat => {
           if (remainingTarget <= 0) return { ...bat, status: 'standby' };
-          
+
           if (hubTarget > 0) {
             const toStore = Math.min(remainingTarget, bat.capacity - bat.stored, bat.rate);
             remainingTarget -= toStore;
@@ -257,7 +257,7 @@ function energyReducer(state, action) {
         });
         newHubs[hubId] = { ...newHubs[hubId], batteries: newBatteries };
       });
-      
+
       return {
         ...state,
         sources: newSources,
@@ -300,7 +300,7 @@ function energyReducer(state, action) {
         if (remainingCharge <= 0) return { ...bat, status: 'standby' };
         const capacityAvailable = bat.capacity - bat.stored;
         const chargeAmount = Math.min(bat.rate, remainingCharge, capacityAvailable);
-        
+
         if (chargeAmount > 0) {
           remainingCharge -= chargeAmount;
           return { ...bat, stored: bat.stored + chargeAmount, status: 'charging' };
@@ -319,7 +319,7 @@ function energyReducer(state, action) {
     case 'HUB_DISCHARGE': {
       const hubId = action.payload;
       const hub = state.hubs[hubId];
-      
+
       const newBatteries = hub.batteries.map(bat => {
         const dischargeAmount = Math.min(bat.rate, bat.stored);
         if (dischargeAmount > 0) {
@@ -345,7 +345,7 @@ function energyReducer(state, action) {
       const newSources = { ...state.sources };
       Object.keys(newSources).forEach(key => {
         const src = newSources[key];
-        
+
         // Skip adding random variance to solar if simulation is mathematically driving it
         if (key === 'solar' && state.solarSimulation.isPlaying) {
           totalGen += src.generation;
@@ -359,7 +359,7 @@ function energyReducer(state, action) {
       });
 
       const conVariance = (Math.random() - 0.5) * 30;
-      const newConsumption = Math.max(500, Math.min(2000, state.consumption + conVariance));
+      const newConsumption = Math.max(0, Math.min(5000, state.consumption + conVariance));
       const freq = 50 + (Math.random() - 0.5) * 0.1;
       const surplus = totalGen - newConsumption;
 
@@ -415,25 +415,25 @@ function energyReducer(state, action) {
               };
               newAlerts = [alert, ...newAlerts].slice(0, 30);
               newNotifications = [
-                { 
-                  id: now + Math.random(), 
-                  title: rule.label, 
-                  msg: `${rule.reason} ${rule.recommendedAction}`, 
-                  time: 'Just now', 
-                  read: false, 
+                {
+                  id: now + Math.random(),
+                  title: rule.label,
+                  msg: `${rule.reason} ${rule.recommendedAction}`,
+                  time: 'Just now',
+                  read: false,
                   severity: rule.priority,
                   type: 'maintenance'
                 },
                 ...newNotifications,
               ].slice(0, 20);
               newCooldowns[rule.id] = now;
-              
+
               // Mark source status
               newSources[rule.source].maintenanceStatus = 'Needs Attention';
             }
           }
         } else {
-           newSources[rule.source].maintenanceStatus = 'Normal';
+          newSources[rule.source].maintenanceStatus = 'Normal';
         }
       });
 
@@ -452,7 +452,7 @@ function energyReducer(state, action) {
     case 'MARK_NOTIF_READ': {
       return {
         ...state,
-        notifications: state.notifications.map(n => 
+        notifications: state.notifications.map(n =>
           n.id === action.payload ? { ...n, read: true } : n
         )
       };

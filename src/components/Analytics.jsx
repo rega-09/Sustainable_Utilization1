@@ -1,4 +1,4 @@
-import { useEnergy, getTotalGeneration, getSurplus } from '../store/EnergyContext';
+import { useEnergy, getTotalGeneration, getSurplus, SOURCES } from '../store/EnergyContext';
 import './Analytics.css';
 
 export default function Analytics() {
@@ -7,13 +7,16 @@ export default function Analytics() {
   const surplus = getSurplus(state);
   
   // 1. Renewable Contribution (Percentage)
-  const sourcesData = Object.entries(state.sources).map(([key, src]) => ({
-    key,
-    label: src.label,
-    gen: src.generation,
-    pct: totalGen > 0 ? (src.generation / totalGen) * 100 : 0,
-    color: src.color || '#ccc'
-  })).sort((a, b) => b.gen - a.gen);
+  const sourcesData = Object.entries(state.sources).map(([key, src]) => {
+    const meta = SOURCES[key];
+    return {
+      key,
+      label: meta.label,
+      gen: src.generation,
+      pct: totalGen > 0 ? (src.generation / totalGen) * 100 : 0,
+      color: meta.color || '#ccc'
+    };
+  }).sort((a, b) => b.gen - a.gen);
 
   // 2. Energy Distribution Flow
   const totalStored = Object.values(state.hubs).reduce((s, hub) => 
@@ -93,3 +96,4 @@ export default function Analytics() {
     </section>
   );
 }
+

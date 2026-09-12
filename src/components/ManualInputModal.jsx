@@ -29,7 +29,7 @@ export default function ManualInputModal({ isOpen, onClose }) {
       payload: {
         id: Date.now(),
         title: `Generation Added`,
-        msg: `+${amount} MW from ${SOURCES[source].label} → ${direction === 'battery' ? 'Battery' : direction === 'grid' ? 'Grid' : 'Auto'}`,
+        msg: `+${amount} kW from ${SOURCES[source].label} → ${direction === 'battery' ? 'Battery' : direction === 'grid' ? 'Grid' : 'Auto'}`,
         time: 'Just now',
         read: false,
       },
@@ -66,7 +66,7 @@ export default function ManualInputModal({ isOpen, onClose }) {
               <input
                 type="number" id="genAmount"
                 min="1" max="10000" step="1"
-                placeholder="Enter MW"
+                placeholder="Enter kW"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
                 required
@@ -117,3 +117,4 @@ export default function ManualInputModal({ isOpen, onClose }) {
     </div>
   );
 }
+

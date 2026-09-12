@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useEnergy, SOURCES, getCO2Saved, getEfficiency } from '../store/EnergyContext';
 import './SourceCards.css';
-import SolarSimulationPanel from './SolarSimulationPanel';
 
 const SOURCE_SVGS = {
   solar: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,
@@ -105,9 +104,6 @@ export default function SourceCards({ onOpenModal }) {
                 <div>
                   <h3>{meta.label}</h3>
                   <span className="source-status online">Online</span>
-                  {key === 'solar' && state.solarSimulation.isPlaying && (
-                    <span className="sim-mode-indicator" style={{ marginLeft: '8px', fontSize: '0.65rem', color: 'var(--accent-green)', fontWeight: '800' }}>[SIMULATION]</span>
-                  )}
                 </div>
               </div>
 
@@ -128,7 +124,6 @@ export default function SourceCards({ onOpenModal }) {
                   max={src.capacity}
                   value={Math.round(src.generation)}
                   onChange={e => handleGenChange(key, Number(e.target.value))}
-                  disabled={key === 'solar' && state.solarSimulation.isPlaying}
                 />
                 <div className="source-slider-labels">
                   <span>0 kW</span>
@@ -167,7 +162,7 @@ export default function SourceCards({ onOpenModal }) {
           );
         })}
       </div>
-      <SolarSimulationPanel />
     </section>
   );
 }
+

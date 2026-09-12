@@ -1,0 +1,131 @@
+/* ================================================================
+   DispatchDashboard.css
+   Intelligent Renewable Energy Dispatch Control Room
+   Darker, tech-focused theme with green/cyan/blue accents
+   ================================================================ */
+
+.dispatch-page {
+  font-family: 'Inter', sans-serif;
+  color: #e2e8f0;
+  background-color: #0f172a; /* Dark blue/slate background for control room feel */
+  min-height: 100vh;
+  margin-top: calc(var(--nav-height) + var(--tricolour-height));
+  padding-bottom: 60px;
+}
+
+/* Typography & Utilities */
+.d-title { font-size: 1.5rem; font-weight: 800; color: #ffffff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.d-subtitle { font-size: 0.85rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.text-cyan { color: #22d3ee; }
+.text-green { color: #83f28f; }
+.text-yellow { color: #fbbf24; }
+.text-red { color: #ef4444; }
+
+/* Glassmorphism Cards */
+.d-card {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.d-container { max-width: 1440px; margin: 0 auto; padding: 24px 5%; display: flex; flex-direction: column; gap: 32px; }
+
+/* Grid Layouts */
+.d-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.d-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.d-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+
+/* Hero Section */
+.d-hero {
+  display: flex; justify-content: space-between; align-items: flex-end; padding: 32px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 58, 138, 0.4));
+  border-radius: 24px; border: 1px solid rgba(56, 189, 248, 0.2);
+  margin-top: 24px;
+}
+.d-hero-titles h1 { font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 4px; }
+.d-hero-titles p { font-size: 1.1rem; color: #38bdf8; font-weight: 600; }
+.d-status-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(131,242,143,0.15); border: 1px solid #83f28f; color: #83f28f; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; margin-bottom: 16px; }
+.d-pulse { width: 10px; height: 10px; border-radius: 50%; background: #83f28f; animation: pulseGreen 2s infinite; }
+
+/* Scenario Bar */
+.scenario-bar {
+  display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;
+}
+.scenario-btn {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1;
+  padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.2s;
+}
+.scenario-btn:hover { background: rgba(255,255,255,0.1); }
+.scenario-btn.active { background: rgba(56, 189, 248, 0.2); border-color: #38bdf8; color: #fff; }
+
+/* Live Energy Flow Centerpiece */
+.flow-network-container {
+  position: relative;
+  width: 100%;
+  padding: 40px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flow-col {
+  display: flex; flex-direction: column; gap: 40px; z-index: 2; width: 200px;
+}
+
+.flow-node {
+  background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+  padding: 16px; text-align: center; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.fn-title { font-size: 0.8rem; color: #94a3b8; font-weight: 700; margin-bottom: 8px; }
+.fn-value { font-size: 1.5rem; font-weight: 800; color: #fff; }
+.fn-badge { position: absolute; top: -10px; right: -10px; background: #334155; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; border: 1px solid #475569; }
+
+.hub-node {
+  width: 240px; height: 240px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(14,165,233,0.2) 0%, rgba(15,23,42,1) 80%);
+  border: 4px solid #0ea5e9; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  box-shadow: 0 0 40px rgba(14,165,233,0.3);
+  z-index: 2;
+}
+
+/* SVG Flow Lines */
+.flow-svg-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
+}
+.flow-line {
+  fill: none; stroke: #334155; stroke-width: 2px;
+}
+.flow-particles {
+  fill: none; stroke: #0ea5e9;
+  stroke-dasharray: 10 15;
+  animation: flowAnim 1s linear infinite;
+}
+/* Dynamically change thickness/speed via style tags in JSX */
+
+/* Load Priority Bars */
+.priority-bar-container { background: #334155; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.priority-bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; }
+
+/* Animations */
+@keyframes flowAnim {
+  to { stroke-dashoffset: -25; }
+}
+@keyframes pulseGreen {
+  0% { box-shadow: 0 0 0 0 rgba(131,242,143,0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(131,242,143,0); }
+  100% { box-shadow: 0 0 0 0 rgba(131,242,143,0); }
+}
+
+@media (max-width: 1024px) {
+  .flow-network-container { flex-direction: column; gap: 80px; }
+  .flow-col { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .d-grid-3, .d-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .d-grid-2, .d-grid-3, .d-grid-4 { grid-template-columns: 1fr; }
+  .d-hero { flex-direction: column; align-items: flex-start; gap: 24px; }
+}

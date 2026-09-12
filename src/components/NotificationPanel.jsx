@@ -124,3 +124,4 @@ export default function NotificationPanel({ isOpen, onClose }) {
     </div>
   );
 }
+

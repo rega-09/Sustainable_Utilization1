@@ -1,7 +1,7 @@
 import { useEnergy, getTotalGeneration, getSurplus, getBatteryPercent, HUBS } from '../store/EnergyContext';
 import './KPICards.css';
 
-export default function KPICards() {
+export default function KPICards({ onNavigate }) {
   const { state } = useEnergy();
   const totalGen = getTotalGeneration(state);
   const surplus = getSurplus(state);
@@ -24,42 +24,45 @@ export default function KPICards() {
       className: 'kpi-generation',
       icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,
       label: 'Total Renewable',
-      value: `${(totalGen / 1000).toFixed(2)} MW`, // Convert kW to MW
-      sub: 'Generation',
+      value: `${totalGen.toFixed(0)} kW`,
+      sub: `Cap: ${totalCap.toFixed(0)} kW`,
     },
     {
       className: 'kpi-solar',
       icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/></svg>,
       label: 'Solar',
-      value: `${(state.sources.solar.generation / 1000).toFixed(2)} MW`,
-      sub: 'Active',
+      value: `${state.sources.solar.generation.toFixed(0)} kW`,
+      sub: `Cap: ${state.sources.solar.capacity.toFixed(0)} kW`,
+      route: 'solar'
     },
     {
       className: 'kpi-wind',
       icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>,
       label: 'Wind',
-      value: `${(state.sources.wind.generation / 1000).toFixed(2)} MW`,
-      sub: 'Active',
+      value: `${state.sources.wind.generation.toFixed(0)} kW`,
+      sub: `Cap: ${state.sources.wind.capacity.toFixed(0)} kW`,
+      route: 'wind'
     },
     {
       className: 'kpi-hydro',
       icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>,
       label: 'Hydro',
-      value: `${(state.sources.hydro.generation / 1000).toFixed(2)} MW`,
-      sub: 'Active',
+      value: `${state.sources.hydro.generation.toFixed(0)} kW`,
+      sub: `Cap: ${state.sources.hydro.capacity.toFixed(0)} kW`,
+      route: 'hydro'
     },
     {
       className: 'kpi-battery',
       icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="6" width="18" height="12" rx="2"/><path d="M22 10v4"/></svg>,
       label: 'Battery Storage',
-      value: `${(state.battery.stored / 1000).toFixed(2)} MWh`,
+      value: `${state.battery.stored.toFixed(0)} kWh`,
       sub: `${batPercent.toFixed(1)}% Full`,
     },
     {
       className: 'kpi-grid',
       icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
       label: 'Grid Export',
-      value: `${(gridExport / 1000).toFixed(2)} MW`,
+      value: `${gridExport.toFixed(0)} kW`,
       sub: 'To National Grid',
     },
     {
@@ -81,7 +84,13 @@ export default function KPICards() {
   return (
     <div className="kpi-grid">
       {cards.map((card, i) => (
-        <div className={`kpi-card ${card.className}`} key={i}>
+        <div 
+          className={`kpi-card ${card.className}`} 
+          key={i}
+          style={{ cursor: card.route ? 'pointer' : 'default' }}
+          onClick={() => card.route && onNavigate && onNavigate(card.route)}
+          title={card.route ? `Go to ${card.label} Dashboard` : ''}
+        >
           <div className="kpi-top-bar" />
           <div className="kpi-content">
             <div className="kpi-icon-wrap">{card.icon}</div>
@@ -96,3 +105,4 @@ export default function KPICards() {
     </div>
   );
 }
+

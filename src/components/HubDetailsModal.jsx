@@ -103,3 +103,4 @@ export default function HubDetailsModal({ isOpen, onClose, hubId }) {
     </div>
   );
 }
+
