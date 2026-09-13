@@ -7,8 +7,8 @@ import numpy as np
 import os
 
 PORT = 5001
-SOLAR_MODEL_PATH = os.path.join(os.path.dirname(__file__), "dash.pkl")
-WIND_MODEL_PATH = os.path.join(os.path.dirname(__file__), "wind_dash.pkl")
+SOLAR_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "dash.pkl")
+WIND_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "wind_dash.pkl")
 
 # Load Solar Model
 print(f"Loading Solar model from {SOLAR_MODEL_PATH}...")
