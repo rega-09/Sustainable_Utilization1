@@ -352,13 +352,13 @@ function energyReducer(state, action) {
         }
 
         const variance = (Math.random() - 0.5) * 20;
-        const newGen = Math.max(10, Math.min(src.capacity, src.generation + variance));
+        const newGen = Math.round(Math.max(10, Math.min(src.capacity, src.generation + variance)));
         newSources[key] = { ...src, generation: newGen };
         totalGen += newGen;
       });
 
       const conVariance = (Math.random() - 0.5) * 30;
-      const newConsumption = Math.max(0, Math.min(5000, state.consumption + conVariance));
+      const newConsumption = Math.round(Math.max(0, Math.min(5000, state.consumption + conVariance)));
       const freq = 50 + (Math.random() - 0.5) * 0.1;
       const surplus = totalGen - newConsumption;
 
@@ -410,7 +410,7 @@ function energyReducer(state, action) {
                 severity: rule.priority, // map priority to severity string for backwards compat if needed
                 time: new Date().toLocaleTimeString(),
                 resolved: false,
-                efficiency: ((src.generation / src.capacity) * 100).toFixed(1),
+                efficiency: ((src.generation / src.capacity) * 100).toFixed(0),
               };
               newAlerts = [alert, ...newAlerts].slice(0, 30);
               newNotifications = [
@@ -525,7 +525,7 @@ export function getCO2Saved(source, generation) {
 }
 
 export function getEfficiency(generation, capacity) {
-  return ((generation / capacity) * 100).toFixed(1);
+  return ((generation / capacity) * 100).toFixed(0);
 }
 
 export function getSustainabilityScore(state) {

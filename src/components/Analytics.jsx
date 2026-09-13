@@ -44,7 +44,7 @@ export default function Analytics() {
                 <div className="contrib-row" key={src.key}>
                   <div className="contrib-label-row">
                     <span className="contrib-name">{src.label}</span>
-                    <span className="contrib-val">{src.pct.toFixed(1)}%</span>
+                    <span className="contrib-val">{src.pct.toFixed(0)}%</span>
                   </div>
                   <div className="contrib-track">
                     <div 

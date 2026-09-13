@@ -51,7 +51,7 @@ export default function NationalGrid() {
         <h1>National Grid</h1>
         <div className="grid-freq">
           <span className="freq-label">Grid Frequency</span>
-          <span className="freq-value">{state.gridFrequency.toFixed(2)} Hz</span>
+          <span className="freq-value">{state.gridFrequency.toFixed(0)} Hz</span>
         </div>
       </div>
 

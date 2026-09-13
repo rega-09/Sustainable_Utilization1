@@ -10,7 +10,7 @@ export default function EnergyMix() {
     label: SOURCES[key].label,
     color: SOURCES[key].color,
     value: val.generation,
-    percent: totalGen > 0 ? (val.generation / totalGen * 100).toFixed(1) : 0,
+    percent: totalGen > 0 ? (val.generation / totalGen * 100).toFixed(0) : 0,
   }));
 
   // Build donut chart with SVG

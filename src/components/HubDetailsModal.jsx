@@ -93,7 +93,7 @@ export default function HubDetailsModal({ isOpen, onClose, hubId }) {
               </div>
               <div className="h-bat-text">
                 <strong>{totalStored.toFixed(0)} / {totalCapacity} kWh</strong>
-                <span>({aggPercent.toFixed(1)}%)</span>
+                <span>({aggPercent.toFixed(0)}%)</span>
               </div>
             </div>
           </div>

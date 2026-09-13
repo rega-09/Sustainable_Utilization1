@@ -304,7 +304,7 @@ const ReservoirAndMap = ({ data }) => {
 // ==========================================
 const TurbineHealth = ({ data }) => {
   // Animation duration based on turbine speed (e.g., 300 RPM = 5 RPS = 0.2s duration)
-  const animDuration = data.turbine_speed > 0 ? (60 / data.turbine_speed).toFixed(2) : 0;
+  const animDuration = data.turbine_speed > 0 ? (60 / data.turbine_speed).toFixed(0) : 0;
   
   // Anomaly logic
   const isVibrationHigh = data.shaft_vibration > 3.0;
@@ -431,7 +431,7 @@ const EfficiencyAndCoordination = ({ data }) => {
           </p>
           
           <div className="coordination-hub">
-             <div style={{fontSize: '1.8rem', fontWeight: 800}}>{data.total_renewable.toFixed(2)} kW</div>
+             <div style={{fontSize: '1.8rem', fontWeight: 800}}>{data.total_renewable.toFixed(0)} kW</div>
              <div style={{fontSize: '0.8rem', opacity: 0.8}}>TOTAL RENEWABLE POWER AVAILABLE</div>
              
              <div style={{ display: 'flex', width: '100%', justifyContent: 'space-around', marginTop: '32px' }}>

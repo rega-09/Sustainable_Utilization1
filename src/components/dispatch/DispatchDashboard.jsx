@@ -32,22 +32,25 @@ const FlowConnection = ({ sourceRef, targetRef, containerRef, power, color }) =>
     return () => window.removeEventListener('resize', updatePath);
   }, [updatePath]);
 
-  // Visual thickness based on power (max 10MW roughly equals 10px)
-  const thickness = Math.max(2, Math.min(12, power));
+  // Visual thickness based on absolute power
+  const absPower = Math.abs(power);
+  const thickness = Math.max(2, Math.min(12, absPower));
   // Animation speed based on power
-  const animDur = power > 0 ? Math.max(0.2, 2 - (power * 0.15)) : 0;
+  const animDur = absPower > 0 ? Math.max(0.2, 2 - (absPower * 0.15)) : 0;
+  const isReverse = power < 0;
 
   return (
     <g>
       <path d={path} className="flow-line" />
-      {power > 0 && (
+      {absPower > 0 && (
         <path
           d={path}
           className="flow-particles"
           style={{
             stroke: color,
             strokeWidth: thickness,
-            animationDuration: `${animDur}s`
+            animationDuration: `${animDur}s`,
+            animationDirection: isReverse ? 'reverse' : 'normal'
           }}
         />
       )}
@@ -56,7 +59,15 @@ const FlowConnection = ({ sourceRef, targetRef, containerRef, power, color }) =>
 };
 
 export default function DispatchDashboard() {
-  const { data, activeScenario, setActiveScenario } = useDispatchEngine();
+  const { 
+    data, 
+    activeScenario, 
+    setActiveScenario,
+    solarPercent, setSolarPercent,
+    windPercent, setWindPercent,
+    hydroPercent, setHydroPercent,
+    batterySoc, setBatterySoc
+  } = useDispatchEngine();
 
   // Refs for the flow diagram
   const containerRef = useRef(null);
@@ -78,6 +89,7 @@ export default function DispatchDashboard() {
     { id: 'HIGH_WIND', label: '🌬️ High Wind' },
     { id: 'NIGHT', label: '🌙 Night Mode' },
     { id: 'SOLAR_FAIL', label: '🔴 Solar Fail' },
+    { id: 'PEAK_DEMAND', label: '⚠️ Peak Demand' },
   ];
 
   return (
@@ -89,28 +101,17 @@ export default function DispatchDashboard() {
           <div className="d-hero-titles">
             <h1>SMART RENEWABLE ENERGY CONTROL CENTER</h1>
             <p>AI-Ready Dynamic Load Distribution & Renewable Energy Optimization</p>
-            <div className="scenario-bar">
-              {scenarios.map(sc => (
-                <button
-                  key={sc.id}
-                  className={`scenario-btn ${activeScenario === sc.id ? 'active' : ''}`}
-                  onClick={() => setActiveScenario(sc.id)}
-                >
-                  {sc.label}
-                </button>
-              ))}
-            </div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div className="d-status-badge">
               <span className="d-pulse"></span> {data.grid_import > 0 ? 'GRID IMPORTING' : 'GRID STABLE'}
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '8px' }}>LIVE • Updated every 3 seconds</div>
+            <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '8px' }}>LIVE • Updated instantly</div>
             <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', color: '#e2e8f0', background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '8px', textAlign: 'left' }}>
-              <div>TOTAL RENEWABLE: <strong className="text-cyan">{data.total_renewable.toFixed(2)} kW</strong></div>
-              <div>CURRENT LOAD:    <strong>{data.total_demand.toFixed(2)} kW</strong></div>
-              <div>BATTERY SOC:     <strong>{data.battery_soc.toFixed(1)}%</strong></div>
-              <div>RENEWABLE SHARE: <strong className="text-green">{data.renewable_share.toFixed(1)}%</strong></div>
+              <div>TOTAL RENEWABLE: <strong className="text-cyan">{data.total_renewable.toFixed(0)} kW</strong></div>
+              <div>CURRENT LOAD:    <strong>{data.total_demand.toFixed(0)} kW</strong></div>
+              <div>BATTERY SOC:     <strong>{data.battery_soc.toFixed(0)}%</strong></div>
+              <div>RENEWABLE SHARE: <strong className="text-green">{data.renewable_share.toFixed(0)}%</strong></div>
             </div>
           </div>
         </div>
@@ -118,33 +119,43 @@ export default function DispatchDashboard() {
 
       {/* 3 & 4. LIVE ENERGY FLOW & SOURCE NODES */}
       <div className="d-container">
-        <h2 className="d-title">LIVE ENERGY FLOW NETWORK</h2>
+        <h2 className="d-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <span>LIVE ENERGY FLOW NETWORK</span>
+          <div className="scenario-bar" style={{ margin: 0 }}>
+            {scenarios.map(sc => (
+              <button
+                key={sc.id}
+                className={`scenario-btn ${activeScenario === sc.id ? 'active' : ''}`}
+                onClick={() => setActiveScenario(sc.id)}
+              >
+                {sc.label}
+              </button>
+            ))}
+          </div>
+        </h2>
 
-        <div className="flow-network-container" ref={containerRef}>
+        <div className="flow-network-container" ref={containerRef} style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
           {/* SVG Canvas */}
           <svg className="flow-svg-overlay">
-            <FlowConnection sourceRef={solRef} targetRef={hubRef} containerRef={containerRef} power={data.solar_generation} color="#fbbf24" />
-            <FlowConnection sourceRef={winRef} targetRef={hubRef} containerRef={containerRef} power={data.wind_generation} color="#22d3ee" />
-            <FlowConnection sourceRef={hydRef} targetRef={hubRef} containerRef={containerRef} power={data.hydro_generation} color="#38bdf8" />
+            <FlowConnection sourceRef={solRef} targetRef={hubRef} containerRef={containerRef} power={data.solar_generation / 50} color="#fbbf24" />
+            <FlowConnection sourceRef={winRef} targetRef={hubRef} containerRef={containerRef} power={data.wind_generation / 50} color="#22d3ee" />
+            <FlowConnection sourceRef={hydRef} targetRef={hubRef} containerRef={containerRef} power={data.hydro_generation / 50} color="#38bdf8" />
 
-            {/* Hub to Loads */}
-            <FlowConnection sourceRef={hubRef} targetRef={loadRef} containerRef={containerRef} power={data.total_demand} color="#83f28f" />
+            <FlowConnection sourceRef={hubRef} targetRef={loadRef} containerRef={containerRef} power={data.domestic_supplied / 50} color="#83f28f" />
 
-            {/* Hub to Battery */}
             <FlowConnection
-              sourceRef={data.battery_power < 0 ? hubRef : batRef}
-              targetRef={data.battery_power < 0 ? batRef : hubRef}
+              sourceRef={hubRef}
+              targetRef={batRef}
               containerRef={containerRef}
-              power={Math.abs(data.battery_power)}
+              power={data.battery_power / 50}
               color="#a78bfa"
             />
 
-            {/* Hub to Grid */}
             <FlowConnection
-              sourceRef={data.grid_import > 0 ? gridRef : hubRef}
-              targetRef={data.grid_import > 0 ? hubRef : gridRef}
+              sourceRef={hubRef}
+              targetRef={gridRef}
               containerRef={containerRef}
-              power={data.grid_import > 0 ? data.grid_import : data.grid_export}
+              power={(data.grid_import > 0 ? -data.grid_import : data.grid_export) / 50}
               color="#94a3b8"
             />
           </svg>
@@ -152,55 +163,70 @@ export default function DispatchDashboard() {
           {/* Left Column: Generation Sources */}
           <div className="flow-col">
             <div className="flow-node" ref={solRef} style={{ borderColor: '#fbbf24' }}>
-              {data.solar_availability > 0 && <span className="fn-badge" style={{ color: '#fbbf24' }}>Active</span>}
               <div className="fn-title">☀️ SOLAR FARM</div>
-              <div className="fn-value" style={{ color: '#fbbf24' }}>{data.solar_generation.toFixed(2)} kW</div>
-              <div style={{ fontSize: '0.75rem', marginTop: '8px', color: '#94a3b8' }}>Avail: {data.solar_availability.toFixed(0)}%</div>
+              <div className="fn-value" style={{ color: '#fbbf24' }}>{data.solar_generation.toFixed(0)} kW</div>
+              <div style={{ fontSize: '0.75rem', marginTop: '8px', color: '#94a3b8' }}>Capacity: 800 kW</div>
             </div>
 
             <div className="flow-node" ref={winRef} style={{ borderColor: '#22d3ee' }}>
-              <span className="fn-badge" style={{ color: '#22d3ee' }}>Active</span>
               <div className="fn-title">🌬️ WIND FARM</div>
-              <div className="fn-value" style={{ color: '#22d3ee' }}>{data.wind_generation.toFixed(2)} kW</div>
-              <div style={{ fontSize: '0.75rem', marginTop: '8px', color: '#94a3b8' }}>Avail: {data.wind_availability.toFixed(0)}%</div>
+              <div className="fn-value" style={{ color: '#22d3ee' }}>{data.wind_generation.toFixed(0)} kW</div>
+              <div style={{ fontSize: '0.75rem', marginTop: '8px', color: '#94a3b8' }}>Capacity: 600 kW</div>
             </div>
 
             <div className="flow-node" ref={hydRef} style={{ borderColor: '#38bdf8' }}>
-              <span className="fn-badge" style={{ color: '#38bdf8' }}>Active</span>
               <div className="fn-title">💧 HYDRO PLANT</div>
-              <div className="fn-value" style={{ color: '#38bdf8' }}>{data.hydro_generation.toFixed(2)} kW</div>
-              <div style={{ fontSize: '0.75rem', marginTop: '8px', color: '#94a3b8' }}>Avail: {data.hydro_availability.toFixed(0)}%</div>
+              <div className="fn-value" style={{ color: '#38bdf8' }}>{data.hydro_generation.toFixed(0)} kW</div>
+              <div style={{ fontSize: '0.75rem', marginTop: '8px', color: '#94a3b8' }}>Capacity: 500 kW</div>
             </div>
           </div>
 
           {/* Center: The Dispatch Hub */}
           <div className="hub-node" ref={hubRef}>
             <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '8px' }}>ENERGY HUB</h3>
-            <div style={{ fontSize: '2rem', fontWeight: 900, color: '#38bdf8' }}>{data.total_renewable.toFixed(2)} <span style={{ fontSize: '1rem' }}>MW</span></div>
+            <div style={{ fontSize: '2rem', fontWeight: 900, color: '#38bdf8' }}>{data.total_renewable.toFixed(0)} <span style={{ fontSize: '1rem' }}>kW</span></div>
             <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '8px' }}>Dynamic Routing Active</div>
           </div>
 
           {/* Right Column: Sinks / Loads */}
           <div className="flow-col">
             <div className="flow-node" ref={loadRef} style={{ borderColor: '#83f28f' }}>
-              <div className="fn-title">🏭 LOCAL LOADS</div>
-              <div className="fn-value" style={{ color: '#83f28f' }}>{data.total_demand.toFixed(2)} kW</div>
+              <div className="fn-title">🏭 DOMESTIC LOAD</div>
+              <div className="fn-value" style={{ color: '#83f28f' }}>
+                {data.domestic_supplied.toFixed(0)} kW
+              </div>
+              <div style={{ fontSize: '0.75rem', marginTop: '8px', color: '#94a3b8' }}>
+                {data.domestic_deficit > 0 ? (
+                  <span style={{ color: '#ef4444' }}>Deficit: {data.domestic_deficit.toFixed(0)} kW</span>
+                ) : (
+                  `${data.total_demand} kW max demand`
+                )}
+              </div>
             </div>
 
             <div className="flow-node" ref={batRef} style={{ borderColor: '#a78bfa' }}>
               <div className="fn-title">🔋 BATTERY</div>
               <div className="fn-value" style={{ color: '#a78bfa' }}>
-                {data.battery_power === 0 ? 'IDLE' : `${Math.abs(data.battery_power).toFixed(2)} kW`}
+                {data.battery_power === 0 ? 'IDLE' : `${Math.abs(data.battery_power).toFixed(0)} kW`}
               </div>
               <div style={{ fontSize: '0.75rem', marginTop: '8px', color: '#94a3b8' }}>
-                SOC: {data.battery_soc.toFixed(1)}% | {data.battery_power < 0 ? 'Charging' : 'Discharging'}
+                SOC: {data.battery_soc.toFixed(0)}% | {data.battery_power > 0 ? 'Charging' : (data.battery_power < 0 ? 'Discharging' : (data.battery_soc >= 100 ? 'Full' : 'Standby'))}
               </div>
+              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Capacity: 500 kW</div>
             </div>
 
             <div className="flow-node" ref={gridRef} style={{ borderColor: '#94a3b8' }}>
               <div className="fn-title">⚡ NAT. GRID</div>
-              <div className="fn-value" style={{ color: '#e2e8f0' }}>
-                {data.grid_import > 0 ? `${data.grid_import.toFixed(2)} kW In` : (data.grid_export > 0 ? `${data.grid_export.toFixed(2)} kW Out` : 'IDLE')}
+              <div className="fn-value" style={{ color: '#e2e8f0', fontSize: '1.2rem', lineHeight: '1.2', marginTop: '8px' }}>
+                {data.grid_import > 0 ? (
+                  <span style={{ color: '#ef4444' }}>IMPORTING<br/>{data.grid_import.toFixed(0)} kW</span>
+                ) : (
+                  data.grid_export > 0 ? (
+                    <span style={{ color: '#38bdf8' }}>EXPORTING<br/>{data.grid_export.toFixed(0)} kW</span>
+                  ) : (
+                    'IDLE'
+                  )
+                )}
               </div>
             </div>
           </div>
@@ -228,53 +254,45 @@ export default function DispatchDashboard() {
                     <strong style={{ fontSize: '1.1rem' }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'} {src.name}</strong>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div>{src.generation.toFixed(2)} kW</div>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Avail: {src.avail.toFixed(0)}%</div>
+                    <div>{src.generation.toFixed(0)} kW</div>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Capacity: {src.avail.toFixed(0)}%</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Load Priority & Distribution */}
+          {/* Power Flow Summary */}
           <div className="d-card">
-            <h3 className="d-title">LOAD PRIORITY MANAGEMENT</h3>
-            <div className="d-subtitle" style={{ marginBottom: '16px' }}>Live Load Distribution</div>
+            <h3 className="d-title">POWER FLOW SUMMARY</h3>
+            <div className="d-subtitle" style={{ marginBottom: '16px' }}>Live Allocation</div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <strong>CRITICAL LOAD (Hospitals, Comms)</strong>
-                <span>{data.critical_load.toFixed(2)} kW</span>
-              </div>
-              <div className="priority-bar-container">
-                <div className="priority-bar-fill" style={{ width: '100%', background: '#ef4444' }}></div>
-              </div>
+            <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+              <strong>Total Generation</strong>
+              <span className="text-cyan">{data.total_renewable.toFixed(0)} kW</span>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <strong>NORMAL LOAD (Industrial, Residential)</strong>
-                <span>{data.normal_load.toFixed(2)} kW</span>
-              </div>
-              <div className="priority-bar-container">
-                <div className="priority-bar-fill" style={{ width: '100%', background: '#fbbf24' }}></div>
-              </div>
+            <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', padding: '12px', borderLeft: '4px solid #83f28f' }}>
+              <strong>Domestic Load</strong>
+              <span>{data.domestic_supplied.toFixed(0)} kW</span>
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <strong>FLEXIBLE LOAD (EVs, Water Pumps)</strong>
-                <span>{data.flexible_load_supplied.toFixed(2)} kW Supplied</span>
-              </div>
-              <div className="priority-bar-container">
-                {/* Visual representation of supplied vs total requested (fixed at 6.0 for demo) */}
-                <div className="priority-bar-fill" style={{ width: `${(data.flexible_load_supplied / 6.0) * 100}%`, background: '#83f28f' }}></div>
-              </div>
+            <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', padding: '12px', borderLeft: '4px solid #a78bfa' }}>
+              <strong>Battery Allocation</strong>
+              <span>{data.battery_power.toFixed(0)} kW</span>
             </div>
 
-            <div style={{ background: 'rgba(131,242,143,0.1)', border: '1px solid #83f28f', padding: '12px', borderRadius: '8px', color: '#83f28f', fontSize: '0.85rem' }}>
-              <strong>DYNAMIC LOAD SHIFTING:</strong> {data.flexible_load_supplied > 4.0 ? 'Flexible loads maximized due to renewable surplus.' : 'Flexible loads reduced/shifted to conserve battery and grid imports.'}
-            </div>
+            {data.grid_import > 0 ? (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderLeft: '4px solid #ef4444' }}>
+                <strong style={{ color: '#ef4444' }}>Grid Import</strong>
+                <span style={{ color: '#ef4444' }}>{data.grid_import.toFixed(0)} kW</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderLeft: '4px solid #38bdf8' }}>
+                <strong style={{ color: '#38bdf8' }}>Grid Export</strong>
+                <span style={{ color: '#38bdf8' }}>{data.grid_export.toFixed(0)} kW</span>
+              </div>
+            )}
           </div>
 
         </div>
@@ -328,7 +346,8 @@ export default function DispatchDashboard() {
       </div>
 
       {/* 22 & 25. SYSTEM HEALTH & SIH FINAL MESSAGE */}
-      <div className="d-container" style={{ paddingBottom: '80px' }}>
+      {/* 22 & 25. SYSTEM HEALTH & SIH FINAL MESSAGE */}
+      <div className="d-container">
         <div className="d-grid-2">
 
           <div className="d-card">
@@ -339,7 +358,7 @@ export default function DispatchDashboard() {
                 <div className="d-subtitle">OVERALL SYSTEM HEALTH</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#38bdf8' }}>{data.renewable_share.toFixed(1)}%</div>
+                <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#38bdf8' }}>{data.renewable_share.toFixed(0)}%</div>
                 <div className="d-subtitle">RENEWABLE UTILIZATION</div>
               </div>
             </div>
@@ -361,6 +380,54 @@ export default function DispatchDashboard() {
               <li><strong>🔋 Battery</strong> when supply and demand are mismatched.</li>
               <li><strong>⚡ Grid</strong> only when additional support is required.</li>
             </ul>
+          </div>
+
+        </div>
+      </div>
+
+      {/* MANUAL OVERRIDE CONTROLS (SLIDERS) */}
+      <div className="d-container" style={{ paddingBottom: '80px', marginTop: '40px' }}>
+        <h2 className="d-title">MANUAL OVERRIDE CONTROLS</h2>
+        <div className="d-grid-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
+          
+          <div className="d-card">
+            <h3 style={{ color: '#fbbf24', marginBottom: '16px' }}>☀️ SOLAR FARM</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span>Production: {data.solar_generation.toFixed(0)} kW</span>
+              <span>Capacity: 800 kW</span>
+            </div>
+            <input type="range" min="0" max="100" value={solarPercent} onChange={(e) => { setSolarPercent(Number(e.target.value)); setActiveScenario(''); }} style={{ width: '100%', accentColor: '#fbbf24', cursor: 'pointer' }} />
+            <div style={{ textAlign: 'right', color: '#94a3b8', fontSize: '0.8rem', marginTop: '4px' }}>{solarPercent}%</div>
+          </div>
+
+          <div className="d-card">
+            <h3 style={{ color: '#22d3ee', marginBottom: '16px' }}>🌬️ WIND FARM</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span>Production: {data.wind_generation.toFixed(0)} kW</span>
+              <span>Capacity: 600 kW</span>
+            </div>
+            <input type="range" min="0" max="100" value={windPercent} onChange={(e) => { setWindPercent(Number(e.target.value)); setActiveScenario(''); }} style={{ width: '100%', accentColor: '#22d3ee', cursor: 'pointer' }} />
+            <div style={{ textAlign: 'right', color: '#94a3b8', fontSize: '0.8rem', marginTop: '4px' }}>{windPercent}%</div>
+          </div>
+
+          <div className="d-card">
+            <h3 style={{ color: '#38bdf8', marginBottom: '16px' }}>💧 HYDRO PLANT</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span>Production: {data.hydro_generation.toFixed(0)} kW</span>
+              <span>Capacity: 500 kW</span>
+            </div>
+            <input type="range" min="0" max="100" value={hydroPercent} onChange={(e) => { setHydroPercent(Number(e.target.value)); setActiveScenario(''); }} style={{ width: '100%', accentColor: '#38bdf8', cursor: 'pointer' }} />
+            <div style={{ textAlign: 'right', color: '#94a3b8', fontSize: '0.8rem', marginTop: '4px' }}>{hydroPercent}%</div>
+          </div>
+
+          <div className="d-card">
+            <h3 style={{ color: '#a78bfa', marginBottom: '16px' }}>🔋 BATTERY SOC</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span>Current Charge</span>
+              <span>Max: 100%</span>
+            </div>
+            <input type="range" min="0" max="100" value={batterySoc} onChange={(e) => { setBatterySoc(Number(e.target.value)); setActiveScenario(''); }} style={{ width: '100%', accentColor: '#a78bfa', cursor: 'pointer' }} />
+            <div style={{ textAlign: 'right', color: '#94a3b8', fontSize: '0.8rem', marginTop: '4px' }}>{batterySoc}%</div>
           </div>
 
         </div>

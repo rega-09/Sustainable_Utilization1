@@ -124,7 +124,7 @@ const EnergyProduction = ({ data }) => {
             </div>
             <div className="wind-card">
               <div style={{fontSize: '0.8rem', color: '#64748b', fontWeight: 700}}>TOTAL</div>
-              <div style={{fontSize: '1.8rem', fontWeight: 800}}>{(data.total_energy/1000).toFixed(1)} GWh</div>
+              <div style={{fontSize: '1.8rem', fontWeight: 800}}>{(data.total_energy/1000).toFixed(0)} GWh</div>
             </div>
           </div>
           
@@ -182,7 +182,7 @@ const EnergyProduction = ({ data }) => {
 const TurbineAndMechanical = ({ data }) => {
   // Map rotor speed to css animation duration (faster speed = lower duration)
   // e.g. 20 RPM = 3 seconds per revolution. RPM = 60/duration -> duration = 60/RPM
-  const animDuration = data.rotor_speed > 0 ? (60 / data.rotor_speed).toFixed(2) : 0;
+  const animDuration = data.rotor_speed > 0 ? (60 / data.rotor_speed).toFixed(0) : 0;
   
   return (
     <section>
@@ -304,7 +304,7 @@ const ElectricalAndFaults = ({ data }) => {
               </div>
               <div style={{marginTop: '8px'}}>
                 {isYawMisaligned ? (
-                  <span className="w-badge w-badge-yellow">⚠ MISALIGNMENT ({yawDiffNormalized.toFixed(1)}°)</span>
+                  <span className="w-badge w-badge-yellow">⚠ MISALIGNMENT ({yawDiffNormalized.toFixed(0)}°)</span>
                 ) : (
                   <span className="w-badge w-badge-green">✓ OPTIMAL</span>
                 )}
@@ -343,7 +343,7 @@ const WindFarmAndDispatch = ({ data }) => {
   const onlineCount = data.turbines.filter(t => t.status === 'ONLINE').length;
   const warningCount = data.turbines.filter(t => t.status === 'WARNING').length;
   const offlineCount = data.turbines.filter(t => t.status === 'OFFLINE').length;
-  const availability = ((onlineCount / data.turbines.length) * 100).toFixed(1);
+  const availability = ((onlineCount / data.turbines.length) * 100).toFixed(0);
 
   return (
     <section style={{marginBottom: '60px'}}>
@@ -398,7 +398,7 @@ const WindFarmAndDispatch = ({ data }) => {
             <div className="wf-node">
               <div className="wf-icon" style={{ borderColor: t.color }}>🌬️</div>
               <span className="wf-label">{t.id}</span>
-              <span className="wf-value" style={{ color: t.color }}>{t.power.toFixed(2)} kW</span>
+              <span className="wf-value" style={{ color: t.color }}>{t.power.toFixed(0)} kW</span>
             </div>
             <div className="wf-connector">
               {t.power > 0 && <div className="wf-particle"></div>}

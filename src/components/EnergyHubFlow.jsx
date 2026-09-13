@@ -308,7 +308,7 @@ export default function EnergyHubFlow({ onHubClick, onNavigate }) {
                 <div className="hf-grid-icon-v3">🏗️</div>
                 <div className="hf-grid-label-v3">National Grid</div>
                 <div className="hf-grid-val-v3">{actualTotalGen.toFixed(0)} kW</div>
-                <div className="hf-grid-freq-v3">{state.gridFrequency.toFixed(2)} Hz</div>
+                <div className="hf-grid-freq-v3">{state.gridFrequency.toFixed(0)} Hz</div>
               </div>
 
               {/* Power Plant */}

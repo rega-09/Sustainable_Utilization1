@@ -34,7 +34,7 @@ export default function BatterySystem() {
               style={{ width: `${percent}%`, background: levelColor }} 
             />
           </div>
-          <div className="bat-row-pct">{percent.toFixed(1)}%</div>
+          <div className="bat-row-pct">{percent.toFixed(0)}%</div>
         </div>
 
         <div className="bat-row-stats">

@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useEnergy } from '../../store/EnergyContext';
 
 const fluctuate = (base, variance) => {
   return base + (Math.random() * variance * 2 - variance);
 };
 
 export function useHydroData() {
+  const { state } = useEnergy();
+  const globalHydroGen = state.sources.hydro.generation;
   const [data, setData] = useState(() => {
     // 1. Generation History (Line/Area chart over time)
     const history = [];
@@ -210,6 +213,26 @@ export function useHydroData() {
     return () => clearInterval(interval);
   }, []);
 
-  return data;
+  return {
+    ...data,
+    generation_power: globalHydroGen,
+    actual_generation: globalHydroGen,
+    energy_production: globalHydroGen,
+    expected_generation: globalHydroGen + 20,
+    daily_energy: Math.round(globalHydroGen * 14.5),
+    monthly_energy: Math.round(globalHydroGen * 14.5 * 30),
+    total_energy: Math.round(globalHydroGen * 14.5 * 365),
+    total_available_power: globalHydroGen + 50,
+    current_load: Math.round(globalHydroGen * 0.9),
+    generationHistory: data.generationHistory.map(h => ({
+      ...h,
+      expected: Math.round(h.expected * 50),
+      actual: h.actual ? Math.round(h.actual * 50) : null
+    })),
+    generationMap24h: data.generationMap24h.map(m => ({
+      ...m,
+      generation: Math.round(m.generation * 50)
+    }))
+  };
 }
 

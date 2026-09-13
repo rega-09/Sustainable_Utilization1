@@ -9,6 +9,7 @@ import EnergyHubFlow from './components/EnergyHubFlow';
 import SourceCards from './components/SourceCards';
 import NationalGrid from './components/NationalGrid';
 import BatterySystem from './components/BatterySystem';
+import PredictiveIntelligence from './components/predictive/PredictiveIntelligence';
 import Analytics from './components/Analytics';
 import ManualInputModal from './components/ManualInputModal';
 import HubDetailsModal from './components/HubDetailsModal';
@@ -50,6 +51,7 @@ function MainDashboard({
           
           <div className="dashboard-grid">
             <EnergyMix />
+            <PredictiveIntelligence />
           </div>
           <EnergyHubFlow onHubClick={handleOpenHubModal} onNavigate={onNavigate} />
         </section>

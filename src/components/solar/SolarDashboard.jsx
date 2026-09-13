@@ -359,7 +359,7 @@ const SystemOverviewVisual = ({ data }) => {
         <div className="flow-node">
           <div className="flow-icon">🏭</div>
           <span className="flow-label">Transformer</span>
-          <span className="flow-value animated-number">{(data.ac_power * 0.99).toFixed(1)} kW</span>
+          <span className="flow-value animated-number">{(data.ac_power * 0.99).toFixed(0)} kW</span>
         </div>
         
         <div className="flow-connector"><div className="flow-particle" style={{animationDelay: '1s'}}></div></div>
@@ -367,7 +367,7 @@ const SystemOverviewVisual = ({ data }) => {
         <div className="flow-node">
           <div className="flow-icon">🔌</div>
           <span className="flow-label">Grid Connect</span>
-          <span className="flow-value animated-number">{(data.ac_power * 0.98).toFixed(1)} kW</span>
+          <span className="flow-value animated-number">{(data.ac_power * 0.98).toFixed(0)} kW</span>
         </div>
       </div>
     </section>

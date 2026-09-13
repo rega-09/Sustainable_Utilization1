@@ -1,105 +1,66 @@
 import { useState, useEffect } from 'react';
 
-// Fluctuation helper
-const fluctuate = (base, variance) => base + (Math.random() * variance * 2 - variance);
+export const CAPACITY_SOLAR = 800;
+export const CAPACITY_WIND = 600;
+export const CAPACITY_HYDRO = 500;
+export const MAX_DOMESTIC_LOAD = 600;
+export const MAX_BATTERY_CHARGE = 500;
 
 const initialState = {
   scenarioName: 'SUNNY AFTERNOON (NORMAL)',
   timestamp: Date.now(),
 
-  // Base capacities
-  capacity_solar: 8.0,
-  capacity_wind: 10.0,
-  capacity_hydro: 12.0,
+  capacity_solar: CAPACITY_SOLAR,
+  capacity_wind: CAPACITY_WIND,
+  capacity_hydro: CAPACITY_HYDRO,
 
-  // Generation (MW)
-  solar_generation: 6.4,
-  wind_generation: 4.1,
-  hydro_generation: 5.2,
+  solar_percent: 100,
+  wind_percent: 60,
+  hydro_percent: 80,
 
-  // Availability (0 - 100%)
-  solar_availability: 80,
-  wind_availability: 41,
-  hydro_availability: 88,
+  solar_generation: 800,
+  wind_generation: 360,
+  hydro_generation: 400,
 
-  // Environment
-  sunlight_intensity: 800, // W/m2
-  cloud_cover: 12, // %
-  wind_speed: 6.2, // m/s
-  rainfall: 0, // mm
-  water_inflow: 120, // m3/s
-  reservoir_level: 85, // %
+  total_renewable: 1560,
+  total_demand: MAX_DOMESTIC_LOAD,
 
-  // Demand breakdown (MW)
-  residential_load: 4.8,
-  industrial_load: 5.6,
-  water_pump_load: 2.4, // Flexible
-  agricultural_load: 1.8, // Flexible
-  ev_charging_load: 2.1, // Flexible
-  commercial_load: 1.1,
+  domestic_supplied: MAX_DOMESTIC_LOAD,
+  domestic_deficit: 0,
 
-  // Calculated totals
-  total_demand: 17.8,
-  total_renewable: 15.7,
-
-  // Priority categories
-  critical_load: 6.5,
-  normal_load: 6.0,
-  flexible_load: 5.3,
-
-  // Dispatch allocation
-  flexible_load_supplied: 5.3,
-
-  // Battery (MWh / kW)
   battery_soc: 72,
-  battery_power: 2.1, // Negative means charging, positive discharging
-  battery_capacity: 20,
+  battery_power: 500, // >0 means charging
 
-  // Grid (MW)
   grid_import: 0,
-  grid_export: 0,
-  grid_frequency: 50.01,
-  grid_voltage: 415,
+  grid_export: 460,
 
-  // System metrics
-  renewable_share: 88.2, // %
-  energy_surplus: 0,
-  energy_deficit: 2.1,
-  system_health: 94,
+  renewable_share: 100,
+  system_health: 98,
 
-  // Scenario explanation
-  decision_reason: 'Normal afternoon operation. Solar output is high. Flexible loads are fully supplied.',
-
-  // Dispatch Array for rankings
-  source_ranks: [
-    { name: 'SOLAR', type: 'solar', generation: 6.4, avail: 80 },
-    { name: 'HYDRO', type: 'hydro', generation: 5.2, avail: 88 },
-    { name: 'WIND', type: 'wind', generation: 4.1, avail: 41 },
-  ],
-
-  // Timeline Data
+  decision_reason: '',
+  source_ranks: [],
   timeline24h: []
 };
 
-// Generate 24-hour mock data
+// Generate 24-hour mock data for the timeline chart
 const generateTimeline = () => {
   const data = [];
   for (let i = 0; i < 24; i++) {
     const time = `${i.toString().padStart(2, '0')}:00`;
-    let sol = (i > 6 && i < 18) ? Math.sin((i - 6) / 12 * Math.PI) * 7 : 0;
-    let win = 2 + Math.random() * 6;
-    let hyd = 4 + Math.random() * 4;
-    let dem = 10 + (i > 8 && i < 22 ? 5 : 0) + Math.random() * 3;
+    let sol = (i > 6 && i < 18) ? Math.sin((i - 6) / 12 * Math.PI) * 700 : 0;
+    let win = 200 + Math.random() * 400;
+    let hyd = 300 + Math.random() * 200;
+    let dem = 400 + (i > 8 && i < 22 ? 200 : 0);
     let totalR = sol + win + hyd;
-    let bat = totalR > dem ? (totalR - dem) * 0.8 : (dem - totalR > 0 ? dem - totalR : 0);
+    let bat = totalR > dem ? Math.min((totalR - dem), MAX_BATTERY_CHARGE) : 0;
 
     data.push({
       time,
-      Solar: Number(sol.toFixed(1)),
-      Wind: Number(win.toFixed(1)),
-      Hydro: Number(hyd.toFixed(1)),
-      Demand: Number(dem.toFixed(1)),
-      Battery: Number(bat.toFixed(1))
+      Solar: Number(sol.toFixed(0)),
+      Wind: Number(win.toFixed(0)),
+      Hydro: Number(hyd.toFixed(0)),
+      Demand: Number(dem.toFixed(0)),
+      Battery: Number(bat.toFixed(0))
     });
   }
   return data;
@@ -110,159 +71,153 @@ export function useDispatchEngine() {
   const [data, setData] = useState(initialState);
   const [activeScenario, setActiveScenario] = useState('SUNNY');
 
-  // Master Simulation Loop
+  const [solarPercent, setSolarPercent] = useState(100);
+  const [windPercent, setWindPercent] = useState(50);
+  const [hydroPercent, setHydroPercent] = useState(50);
+  const [batterySoc, setBatterySoc] = useState(72);
+
+  // Apply scenarios when they change
   useEffect(() => {
-    const interval = setInterval(() => {
-      setData(prev => {
-        let newState = { ...prev, timestamp: Date.now() };
-
-        // 1. Base Environment based on Scenario
-        if (activeScenario === 'SUNNY') {
-          newState.scenarioName = 'SUNNY AFTERNOON (NORMAL)';
-          newState.sunlight_intensity = fluctuate(850, 50);
-          newState.cloud_cover = fluctuate(10, 5);
-          newState.wind_speed = fluctuate(5.0, 1.0);
-          newState.water_inflow = fluctuate(120, 10);
-          newState.decision_reason = 'High solar availability detected. Flexible loads (EVs, Water Pumps) are scheduled to absorb peak solar generation.';
-        }
-        else if (activeScenario === 'MONSOON') {
-          newState.scenarioName = 'MONSOON CONDITIONS';
-          newState.sunlight_intensity = fluctuate(250, 50);
-          newState.cloud_cover = fluctuate(85, 10);
-          newState.wind_speed = fluctuate(7.0, 2.0);
-          newState.water_inflow = fluctuate(250, 30);
-          newState.rainfall = fluctuate(45, 5);
-          newState.decision_reason = 'Cloud cover has reduced solar output. High water inflow detected. Shifting primary generation and flexible loads to Hydro priority.';
-        }
-        else if (activeScenario === 'HIGH_WIND') {
-          newState.scenarioName = 'HIGH WIND CONDITIONS';
-          newState.sunlight_intensity = fluctuate(600, 50);
-          newState.cloud_cover = fluctuate(40, 10);
-          newState.wind_speed = fluctuate(18.5, 2.0);
-          newState.water_inflow = fluctuate(100, 10);
-          newState.decision_reason = 'High wind availability. Wind generation maximized. Surplus power routed to battery charging.';
-        }
-        else if (activeScenario === 'NIGHT') {
-          newState.scenarioName = 'NIGHT OPERATIONS';
-          newState.sunlight_intensity = 0;
-          newState.cloud_cover = 20;
-          newState.wind_speed = fluctuate(6.0, 1.0);
-          newState.water_inflow = fluctuate(120, 10);
-          newState.decision_reason = 'Solar generation zero. Relying on Hydro and Wind base load. Discharging battery to meet peak evening demand.';
-        }
-        else if (activeScenario === 'SOLAR_FAIL') {
-          newState.scenarioName = 'ANOMALY: SOLAR FARM OFFLINE';
-          newState.sunlight_intensity = fluctuate(850, 50); // It's sunny, but...
-          newState.cloud_cover = 10;
-          newState.wind_speed = fluctuate(5.0, 1.0);
-          newState.water_inflow = fluctuate(120, 10);
-          newState.decision_reason = 'CRITICAL: Solar farm unexpectedly offline. Hydro and Battery immediately dispatched to compensate. Non-essential flexible loads shed to maintain grid stability.';
-        }
-
-        // 2. Calculate Generation Based on Physics & Availability
-        // Solar
-        if (activeScenario === 'SOLAR_FAIL' || activeScenario === 'NIGHT') {
-          newState.solar_availability = 0;
-          newState.solar_generation = 0;
-        } else {
-          newState.solar_availability = Math.max(0, 100 - newState.cloud_cover);
-          newState.solar_generation = newState.capacity_solar * (newState.sunlight_intensity / 1000);
-        }
-
-        // Wind (Cut in = 3, Rated = 12, Cut out = 25)
-        let w_avail = 0, w_gen = 0;
-        if (newState.wind_speed > 3 && newState.wind_speed < 25) {
-          w_avail = Math.min(100, (newState.wind_speed / 12) * 100);
-          w_gen = newState.capacity_wind * Math.min(1.0, (newState.wind_speed - 3) / 9);
-        }
-        newState.wind_availability = w_avail;
-        newState.wind_generation = w_gen;
-
-        // Hydro (Based on water inflow and reservoir)
-        let h_avail = Math.min(100, (newState.water_inflow / 150) * 100);
-        let h_gen = newState.capacity_hydro * (h_avail / 100);
-        newState.hydro_availability = h_avail;
-        newState.hydro_generation = h_gen;
-
-        // 3. Load & Demand
-        // Some base fluctuation
-        newState.residential_load = fluctuate(5.0, 0.5);
-        newState.industrial_load = fluctuate(6.0, 0.5);
-        newState.commercial_load = fluctuate(2.0, 0.2);
-
-        newState.critical_load = newState.residential_load * 0.4 + newState.industrial_load * 0.3 + newState.commercial_load * 0.5;
-        newState.normal_load = newState.residential_load * 0.6 + newState.industrial_load * 0.5 + newState.commercial_load * 0.5;
-
-        let desired_flexible_load = 6.0; // max EVs and Pumps we want to run
-
-        // 4. Dispatch Algorithm (Balancing)
-        let total_gen = newState.solar_generation + newState.wind_generation + newState.hydro_generation;
-        let base_demand = newState.critical_load + newState.normal_load;
-
-        let available_for_flexible = total_gen - base_demand;
-        let flexible_supplied = 0;
-        let battery_pwr = 0;
-        let grid_imp = 0;
-        let grid_exp = 0;
-
-        if (available_for_flexible > 0) {
-          // We have surplus beyond base load
-          flexible_supplied = Math.min(available_for_flexible, desired_flexible_load);
-          let remaining_surplus = available_for_flexible - flexible_supplied;
-
-          if (remaining_surplus > 0) {
-            // Charge battery
-            let charge = Math.min(remaining_surplus, 5.0); // max charge rate 5 kW
-            battery_pwr = -charge; // negative = charging
-            remaining_surplus -= charge;
-
-            // Export rest to grid
-            grid_exp = remaining_surplus;
-          }
-        } else {
-          // Deficit even for base load!
-          flexible_supplied = 0;
-          let deficit = base_demand - total_gen;
-
-          // Discharge battery to meet deficit
-          let available_energy = (newState.battery_capacity * newState.battery_soc / 100);
-          let discharge = Math.min(deficit, 5.0, available_energy);
-          battery_pwr = discharge;
-          deficit -= discharge;
-
-          // Import rest from grid
-          grid_imp = deficit;
-        }
-
-        newState.flexible_load_supplied = flexible_supplied;
-        newState.flexible_load = flexible_supplied; // actual running
-        newState.total_demand = base_demand + flexible_supplied;
-        newState.total_renewable = total_gen;
-
-        // Battery SOC update
-        let newSoc = newState.battery_soc - (battery_pwr / newState.battery_capacity) * 0.1; // small multiplier for visual
-        newState.battery_soc = Math.max(0, Math.min(100, newSoc));
-        newState.battery_power = battery_pwr;
-
-        newState.grid_import = grid_imp;
-        newState.grid_export = grid_exp;
-
-        newState.renewable_share = ((total_gen / newState.total_demand) * 100);
-        if (newState.renewable_share > 100) newState.renewable_share = 100;
-
-        // Rank sources by availability
-        newState.source_ranks = [
-          { name: 'SOLAR', type: 'solar', generation: newState.solar_generation, avail: newState.solar_availability },
-          { name: 'HYDRO', type: 'hydro', generation: newState.hydro_generation, avail: newState.hydro_availability },
-          { name: 'WIND', type: 'wind', generation: newState.wind_generation, avail: newState.wind_availability },
-        ].sort((a, b) => b.avail - a.avail);
-
-        return newState;
-      });
-    }, 3000); // update every 3s
-    return () => clearInterval(interval);
+    switch (activeScenario) {
+      case 'SUNNY':
+        setSolarPercent(100);
+        setWindPercent(50);
+        setHydroPercent(50);
+        break;
+      case 'MONSOON':
+        setSolarPercent(10);
+        setWindPercent(80);
+        setHydroPercent(100);
+        break;
+      case 'HIGH_WIND':
+        setSolarPercent(40);
+        setWindPercent(100);
+        setHydroPercent(40);
+        break;
+      case 'NIGHT':
+        setSolarPercent(0);
+        setWindPercent(40);
+        setHydroPercent(60);
+        break;
+      case 'SOLAR_FAIL':
+        setSolarPercent(0);
+        setWindPercent(60);
+        setHydroPercent(90);
+        break;
+      case 'PEAK_DEMAND':
+        setSolarPercent(60);
+        setWindPercent(40);
+        setHydroPercent(100);
+        break;
+      default:
+        break;
+    }
   }, [activeScenario]);
 
-  return { data, activeScenario, setActiveScenario };
+  // Master logic: recalculate on any slider change
+  useEffect(() => {
+    setData(prev => {
+      let newState = { ...prev, timestamp: Date.now() };
+
+      if (activeScenario === 'SUNNY') {
+        newState.scenarioName = '☀️ SUNNY AFTERNOON (NORMAL)';
+        newState.decision_reason = 'High solar availability detected. Domestic load fully supplied. Surplus charging battery and exporting to grid.';
+      } else if (activeScenario === 'MONSOON') {
+        newState.scenarioName = '🌧️ MONSOON CONDITIONS';
+        newState.decision_reason = 'Cloud cover reduced solar. High water inflow. Hydro and Wind prioritized to supply domestic load.';
+      } else if (activeScenario === 'HIGH_WIND') {
+        newState.scenarioName = '🌬️ HIGH WIND CONDITIONS';
+        newState.decision_reason = 'High wind availability. Wind generation maximized. Surplus power routed to battery charging.';
+      } else if (activeScenario === 'NIGHT') {
+        newState.scenarioName = '🌙 NIGHT OPERATIONS';
+        newState.decision_reason = 'Solar generation zero. Relying on Hydro and Wind base load to meet domestic demand.';
+      } else if (activeScenario === 'SOLAR_FAIL') {
+        newState.scenarioName = '🔴 ANOMALY: SOLAR FARM OFFLINE';
+        newState.decision_reason = 'CRITICAL: Solar farm unexpectedly offline. Hydro and Wind are compensating to maintain stability.';
+      } else if (activeScenario === 'PEAK_DEMAND') {
+        newState.scenarioName = '⚠️ PEAK DEMAND';
+        newState.decision_reason = 'High demand period. All available generation routed to Domestic Load. Import may be required if deficit occurs.';
+      }
+
+      // 1. Calculate absolute generation
+      const solar_gen = (solarPercent / 100) * CAPACITY_SOLAR;
+      const wind_gen = (windPercent / 100) * CAPACITY_WIND;
+      const hydro_gen = (hydroPercent / 100) * CAPACITY_HYDRO;
+      const total_gen = solar_gen + wind_gen + hydro_gen;
+
+      newState.solar_percent = solarPercent;
+      newState.wind_percent = windPercent;
+      newState.hydro_percent = hydroPercent;
+      
+      newState.solar_generation = solar_gen;
+      newState.wind_generation = wind_gen;
+      newState.hydro_generation = hydro_gen;
+      newState.total_renewable = total_gen;
+
+      // 2. Priority Logic
+      // STEP 1 - Domestic Load
+      const currentDomesticDemand = activeScenario === 'PEAK_DEMAND' ? 900 : MAX_DOMESTIC_LOAD;
+      newState.total_demand = currentDomesticDemand;
+      
+      const domesticSupplied = Math.min(total_gen, currentDomesticDemand);
+      const domesticDeficit = Math.max(0, currentDomesticDemand - total_gen);
+      
+      newState.domestic_supplied = domesticSupplied;
+      newState.domestic_deficit = domesticDeficit;
+
+      // STEP 2 - Battery
+      let remainingPower = total_gen - currentDomesticDemand;
+      
+      let batteryPower = 0;
+      let actualGridImport = 0;
+      let actualGridExport = 0;
+
+      if (remainingPower > 0) {
+        // Surplus: Charge Battery
+        if (batterySoc < 100) {
+          batteryPower = Math.min(remainingPower, MAX_BATTERY_CHARGE);
+        }
+        actualGridExport = Math.max(0, remainingPower - batteryPower);
+      } else if (remainingPower < 0) {
+        // Deficit: Discharge Battery
+        const deficit = Math.abs(remainingPower);
+        // Assuming battery can discharge up to 500kW if it has charge
+        if (batterySoc > 0) {
+          const dischargeAmount = Math.min(deficit, MAX_BATTERY_CHARGE);
+          batteryPower = -dischargeAmount; // Negative means discharging
+          actualGridImport = Math.max(0, deficit - dischargeAmount);
+        } else {
+          actualGridImport = deficit;
+        }
+      }
+      
+      newState.battery_soc = batterySoc;
+      newState.battery_power = batteryPower;
+
+      // STEP 3 - National Grid
+      newState.grid_export = actualGridExport;
+      newState.grid_import = actualGridImport;
+
+      newState.renewable_share = currentDomesticDemand > 0 ? Math.min(100, (domesticSupplied / currentDomesticDemand) * 100) : 100;
+
+      newState.source_ranks = [
+        { name: 'SOLAR', type: 'solar', generation: solar_gen, avail: solarPercent },
+        { name: 'HYDRO', type: 'hydro', generation: hydro_gen, avail: hydroPercent },
+        { name: 'WIND', type: 'wind', generation: wind_gen, avail: windPercent },
+      ].sort((a, b) => b.avail - a.avail);
+
+      return newState;
+    });
+  }, [solarPercent, windPercent, hydroPercent, activeScenario, batterySoc]);
+
+  return { 
+    data, 
+    activeScenario, 
+    setActiveScenario,
+    solarPercent, setSolarPercent,
+    windPercent, setWindPercent,
+    hydroPercent, setHydroPercent,
+    batterySoc, setBatterySoc
+  };
 }
 
