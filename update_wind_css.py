@@ -1,4 +1,6 @@
-/* ================================================================
+import os
+
+css_content = """/* ================================================================
    WindDashboard.css
    Modern, Light Theme with Sky Blue, Cyan, Green accents
    Glassmorphism elements & Turbine Animations
@@ -557,3 +559,9 @@
     grid-template-columns: 1fr;
   }
 }
+"""
+
+with open('src/components/wind/WindDashboard.css', 'w') as f:
+    f.write(css_content)
+
+print("WindDashboard.css generated.")

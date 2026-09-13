@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import os
+
+jsx_content = """import React, { useState } from 'react';
 import { useWindData } from './useWindData';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine
@@ -834,3 +836,9 @@ export default function WindDashboard() {
     </div>
   );
 }
+"""
+
+with open('src/components/wind/WindDashboard.jsx', 'w') as f:
+    f.write(jsx_content)
+
+print("WindDashboard.jsx generated.")

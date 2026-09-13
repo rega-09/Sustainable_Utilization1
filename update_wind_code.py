@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import os
+
+# --- 1. useWindData.js ---
+use_wind_data_js = """import { useEffect, useState } from "react";
 
 const LATITUDE = 22.806580;
 const LONGITUDE = 85.993019;
@@ -230,3 +233,9 @@ export function useWindData() {
     gearboxTemp, setGearboxTemp,
   };
 }
+"""
+
+with open('src/components/wind/useWindData.js', 'w') as f:
+    f.write(use_wind_data_js)
+
+print("useWindData.js generated.")
