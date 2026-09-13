@@ -3,13 +3,9 @@ import { useEffect, useState } from "react";
 const LATITUDE = 22.806580;
 const LONGITUDE = 85.993019;
 
-// Prototype turbine configuration
-const TURBINE_RATED_POWER_KW = 2.0;
 const CUT_IN_SPEED = 3;
 const RATED_SPEED = 12;
 const CUT_OUT_SPEED = 25;
-
-// Estimated performance ratio
 const PERFORMANCE_RATIO = 0.90;
 
 const WEATHER_API =
@@ -22,585 +18,183 @@ const WEATHER_API =
   `&forecast_days=1` +
   `&timezone=auto`;
 
-
-// ------------------------------------------
-// Wind turbine power model
-// ------------------------------------------
-const calculatePower = (windSpeed) => {
-  if (
-    windSpeed < CUT_IN_SPEED ||
-    windSpeed > CUT_OUT_SPEED
-  ) {
+const calculatePower = (windSpeed, plantCapacityKW) => {
+  if (windSpeed < CUT_IN_SPEED || windSpeed > CUT_OUT_SPEED) {
     return 0;
   }
-
   if (windSpeed >= RATED_SPEED) {
-    return TURBINE_RATED_POWER_KW;
+    return plantCapacityKW;
   }
-
-  const fraction =
-    (windSpeed - CUT_IN_SPEED) /
-    (RATED_SPEED - CUT_IN_SPEED);
-
-  return (
-    TURBINE_RATED_POWER_KW *
-    Math.pow(fraction, 3)
-  );
+  const fraction = (windSpeed - CUT_IN_SPEED) / (RATED_SPEED - CUT_IN_SPEED);
+  return plantCapacityKW * Math.pow(fraction, 3);
 };
 
-
-// ------------------------------------------
-// Estimate air density
-// ------------------------------------------
 const calculateAirDensity = (temperature, pressure) => {
   const temperatureKelvin = temperature + 273.15;
   const pressurePa = pressure * 100;
-
-  return pressurePa /
-    (287.05 * temperatureKelvin);
+  return pressurePa / (287.05 * temperatureKelvin);
 };
 
-
-// ------------------------------------------
-// Hook
-// ------------------------------------------
 export function useWindData() {
-
   const [data, setData] = useState(null);
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState(null);
 
+  // User configurable plant capacity (Default 600 kW as requested)
+  const [plantCapacity, setPlantCapacity] = useState(600);
+
+  // Telemetry controls for ML fault prediction
+  const [alternatorVoltage, setAlternatorVoltage] = useState(415.0);
+  const [vibrationLevel, setVibrationLevel] = useState(3.2);
+  const [generatorTemp, setGeneratorTemp] = useState(70.0);
+  const [gearboxTemp, setGearboxTemp] = useState(65.0);
 
   const fetchWindData = async () => {
-
     try {
-
       setError(null);
-
       const response = await fetch(WEATHER_API);
-
       if (!response.ok) {
         throw new Error("Failed to fetch wind weather data");
       }
 
       const result = await response.json();
-
       const current = result.current;
       const hourly = result.hourly;
 
+      const windSpeed = current.wind_speed_10m ?? 0;
+      const windDirection = current.wind_direction_10m ?? 0;
+      const temperature = current.temperature_2m ?? 0;
+      const humidity = current.relative_humidity_2m ?? 0;
+      const pressure = current.surface_pressure ?? 0;
+      const rainfall = current.rain ?? 0;
 
-      // ------------------------------------------
-      // Current environmental data
-      // ------------------------------------------
-
-      const windSpeed =
-        current.wind_speed_10m ?? 0;
-
-      const windDirection =
-        current.wind_direction_10m ?? 0;
-
-      const temperature =
-        current.temperature_2m ?? 0;
-
-      const humidity =
-        current.relative_humidity_2m ?? 0;
-
-      const pressure =
-        current.surface_pressure ?? 0;
-
-      const rainfall =
-        current.rain ?? 0;
-
-
-      // ------------------------------------------
-      // Air density
-      // ------------------------------------------
-
-      const airDensity =
-        calculateAirDensity(
-          temperature,
-          pressure
-        );
-
-
-      // ------------------------------------------
-      // Current turbine power
-      // ------------------------------------------
-
-      const expectedPower =
-        calculatePower(windSpeed);
-
-      const actualPower =
-        expectedPower * PERFORMANCE_RATIO;
-
-
-      // ------------------------------------------
-      // Rotor speed
-      // ------------------------------------------
+      const airDensity = calculateAirDensity(temperature, pressure);
+      const expectedPower = calculatePower(windSpeed, plantCapacity);
+      const actualPower = expectedPower * PERFORMANCE_RATIO;
 
       let rotorSpeed = 0;
-
-      if (
-        windSpeed >= CUT_IN_SPEED &&
-        windSpeed <= CUT_OUT_SPEED
-      ) {
-
-        rotorSpeed =
-          8 +
-          ((Math.min(windSpeed, RATED_SPEED) -
-            CUT_IN_SPEED) /
-            (RATED_SPEED - CUT_IN_SPEED)) *
-          14;
-
-        rotorSpeed =
-          Math.min(rotorSpeed, 22);
+      if (windSpeed >= CUT_IN_SPEED && windSpeed <= CUT_OUT_SPEED) {
+        rotorSpeed = Math.min(25, 6 + (windSpeed - 3) * 1.5);
       }
-
-
-      // ------------------------------------------
-      // Blade pitch
-      // ------------------------------------------
-
-      let bladePitch = 0;
-
-      if (windSpeed >= RATED_SPEED) {
-        bladePitch = 8;
-      } else if (windSpeed >= CUT_IN_SPEED) {
-        bladePitch = 2;
-      }
-
-
-      // ------------------------------------------
-      // Today's hourly generation
-      // ------------------------------------------
+      const generatorSpeed = rotorSpeed * 60;
 
       const today = new Date();
-
-      const todayDate =
-        new Intl.DateTimeFormat("en-CA", {
-          timeZone: result.timezone,
-        }).format(today);
+      const todayDate = new Intl.DateTimeFormat("en-CA", {
+        timeZone: result.timezone,
+      }).format(today);
 
       const todayIndexes = [];
-
       hourly.time.forEach((time, index) => {
-
         const date = time.slice(0, 10);
-
         if (date === todayDate) {
           todayIndexes.push(index);
         }
-
       });
 
+      const generationHistory = todayIndexes.map((index) => {
+        const time = hourly.time[index];
+        const speed = hourly.wind_speed_10m?.[index] ?? 0;
+        const exp = calculatePower(speed, plantCapacity);
+        const act = exp * PERFORMANCE_RATIO;
 
-      const generationHistory =
-        todayIndexes.map((index) => {
-
-          const ws =
-            hourly.wind_speed_10m?.[index] ?? 0;
-
-          const expected =
-            calculatePower(ws);
-
-          const actual =
-            expected * PERFORMANCE_RATIO;
-
-          return {
-
-            time: hourly.time[index].slice(11, 16),
-
-            expected:
-              Number(expected.toFixed(2)),
-
-            actual:
-              Number(actual.toFixed(2)),
-          };
-
-        });
-
-
-      // ------------------------------------------
-      // Today's energy
-      // ------------------------------------------
-
-      let todayEnergy = 0;
-
-      todayIndexes.forEach((index) => {
-
-        const ws =
-          hourly.wind_speed_10m?.[index] ?? 0;
-
-        const power =
-          calculatePower(ws) *
-          PERFORMANCE_RATIO;
-
-        // Hourly data → kW × 1 hour = kWh
-        todayEnergy += power;
-
+        return {
+          time: new Date(time).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          expected: Math.round(exp),
+          actual: Math.round(act),
+          windSpeed: Math.round(speed),
+        };
       });
 
+      const todayEnergy = todayIndexes.reduce((total, index) => {
+        const speed = hourly.wind_speed_10m?.[index] ?? 0;
+        const power = calculatePower(speed, plantCapacity) * PERFORMANCE_RATIO;
+        return total + power;
+      }, 0);
 
-      // ------------------------------------------
-      // Month-to-date energy
-      // ------------------------------------------
-
-      const currentMonth =
-        today.getMonth();
-
-      const currentYear =
-        today.getFullYear();
-
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
       let monthEnergy = 0;
 
-
       hourly.time.forEach((time, index) => {
-
-        const date =
-          new Date(time);
-
+        const date = new Date(time);
         if (
           date.getMonth() === currentMonth &&
           date.getFullYear() === currentYear
         ) {
-
-          const ws =
-            hourly.wind_speed_10m?.[index] ?? 0;
-
-          const power =
-            calculatePower(ws) *
-            PERFORMANCE_RATIO;
-
+          const speed = hourly.wind_speed_10m?.[index] ?? 0;
+          const power = calculatePower(speed, plantCapacity) * PERFORMANCE_RATIO;
           monthEnergy += power;
         }
-
       });
-
-
-      // ------------------------------------------
-      // Power curve
-      // ------------------------------------------
-
-      const powerCurveData = [];
-
-      for (let ws = 0; ws <= 30; ws++) {
-
-        const expected =
-          calculatePower(ws);
-
-        const actual =
-          expected * PERFORMANCE_RATIO;
-
-        powerCurveData.push({
-
-          windSpeed: ws,
-
-          expected:
-            Number(expected.toFixed(2)),
-
-          actual:
-            Number(actual.toFixed(2)),
-
-        });
-
-      }
-
-
-      // ------------------------------------------
-      // Five turbine wind farm
-      // ------------------------------------------
-
-      const turbineFactors = [
-        1.00,
-        0.95,
-        0.82,
-        1.02,
-        0.00,
-      ];
-
-
-      const turbines =
-        turbineFactors.map((factor, index) => {
-
-          const power =
-            actualPower * factor;
-
-          let status = "ONLINE";
-
-          if (index === 4) {
-            status = "OFFLINE";
-          }
-
-          return {
-
-            id: `T0${index + 1}`,
-
-            power:
-              Number(power.toFixed(2)),
-
-            status,
-
-            color:
-              status === "ONLINE"
-                ? "#83f28f"
-                : status === "WARNING"
-                  ? "#F5B942"
-                  : "#E85D5D",
-          };
-
-        });
-
-
-      const totalAvailablePower =
-        turbines.reduce(
-          (sum, turbine) =>
-            sum + turbine.power,
-          0
-        );
-
-
-      // ------------------------------------------
-      // Prototype dispatch values
-      // ------------------------------------------
-
-      const currentLoad = 3.82;
-
-      const surplusPower =
-        totalAvailablePower - currentLoad;
-
-
-      // ------------------------------------------
-      // Mechanical estimates
-      // ------------------------------------------
-
-      const yawAngle =
-        windDirection;
-
-      const gearboxTemperature =
-        50 + actualPower * 15;
-
-      const generatorTemperature =
-        52 + actualPower * 14;
-
-      const bearingTemperature =
-        45 + actualPower * 7;
-
-      const gearboxVibration =
-        1 + actualPower * 1.2;
-
-
-      // ------------------------------------------
-      // Electrical estimates
-      // ------------------------------------------
-
-      const generatorVoltage = 690;
-
-      const generatorCurrent =
-        actualPower > 0
-          ? (actualPower * 1000) /
-          (Math.sqrt(3) * generatorVoltage)
-          : 0;
-
-      const gridVoltage = 415;
-
-      const gridFrequency = 50;
-
-      const powerFactor = 0.97;
-
-
-      // ------------------------------------------
-      // Turbine efficiency
-      // ------------------------------------------
-
-      const turbineEfficiency =
-        expectedPower > 0
-          ? (actualPower / expectedPower) * 100
-          : 0;
-
-
-      // ------------------------------------------
-      // Final data object
-      // ------------------------------------------
 
       setData({
+        wind_speed: Number(windSpeed.toFixed(1)),
+        wind_direction: Math.round(windDirection),
+        temperature: Number(temperature.toFixed(1)),
+        humidity: Math.round(humidity),
+        pressure: Math.round(pressure),
+        rainfall: Number(rainfall.toFixed(1)),
+        air_density: Number(airDensity.toFixed(3)),
 
-        // Environmental
-        wind_speed:
-          Number(windSpeed.toFixed(1)),
+        energy_production: Math.round(actualPower),
+        power_output: Math.round(actualPower),
+        today_energy: Number(todayEnergy.toFixed(1)),
+        month_energy: Number(monthEnergy.toFixed(1)),
+        total_energy: Number((monthEnergy * 3.8).toFixed(1)),
 
-        wind_direction:
-          Number(windDirection.toFixed(0)),
+        expected_generation: Math.round(expectedPower),
+        actual_generation: Math.round(actualPower),
+        plant_capacity: plantCapacity,
+        plant_efficiency: Math.round(PERFORMANCE_RATIO * 100),
 
-        temperature:
-          Number(temperature.toFixed(1)),
+        rotor_speed: Number(rotorSpeed.toFixed(1)),
+        generator_speed: Math.round(generatorSpeed),
+        blade_pitch_angle: windSpeed > 12 ? Number(((windSpeed - 12) * 2).toFixed(1)) : 0,
 
-        humidity:
-          Number(humidity.toFixed(0)),
+        // Telemetry inputs for ML Model
+        alternator_voltage: alternatorVoltage,
+        vibration_level: vibrationLevel,
+        generator_temp: generatorTemp,
+        gearbox_oil_temp: gearboxTemp,
 
-        pressure:
-          Number(pressure.toFixed(1)),
+        capacity_factor: Math.round((actualPower / plantCapacity) * 100),
+        active_turbines: Math.round(plantCapacity / 100),
+        total_turbines: Math.round(plantCapacity / 100),
+        plant_health: vibrationLevel > 7.0 || generatorTemp > 90 ? 75 : 98,
 
-        rainfall:
-          Number(rainfall.toFixed(1)),
-
-        air_density:
-          Number(airDensity.toFixed(2)),
-
-
-        // Mechanical
-        rotor_speed:
-          Number(rotorSpeed.toFixed(1)),
-
-        blade_pitch_angle:
-          Number(bladePitch.toFixed(1)),
-
-        yaw_angle:
-          Number(yawAngle.toFixed(0)),
-
-
-        // Temperatures
-        gearbox_temperature:
-          Number(gearboxTemperature.toFixed(0)),
-
-        generator_temperature:
-          Number(generatorTemperature.toFixed(0)),
-
-        bearing_temperature:
-          Number(bearingTemperature.toFixed(0)),
-
-
-        // Vibrations
-        rotor_vibration:
-          Number((1 + actualPower * 0.8).toFixed(1)),
-
-        gearbox_vibration:
-          Number(gearboxVibration.toFixed(1)),
-
-        generator_vibration:
-          Number((1 + actualPower * 0.5).toFixed(1)),
-
-
-        // Electrical
-        generator_voltage:
-          generatorVoltage,
-
-        generator_current:
-          Number(generatorCurrent.toFixed(1)),
-
-        generator_power:
-          Number(actualPower.toFixed(2)),
-
-        grid_voltage:
-          gridVoltage,
-
-        grid_current:
-          Number(
-            actualPower > 0
-              ? (
-                actualPower * 1000 /
-                (Math.sqrt(3) * gridVoltage * powerFactor)
-              ).toFixed(1)
-              : 0
-          ),
-
-        grid_frequency:
-          gridFrequency,
-
-        power_factor:
-          powerFactor,
-
-
-        // KPIs
-        energy_production:
-          Number(actualPower.toFixed(2)),
-
-        today_energy:
-          Number(todayEnergy.toFixed(1)),
-
-        month_energy:
-          Number(monthEnergy.toFixed(1)),
-
-        total_energy:
-          0,
-
-        expected_generation:
-          Number(expectedPower.toFixed(2)),
-
-        actual_generation:
-          Number(actualPower.toFixed(2)),
-
-        turbine_efficiency:
-          Number(turbineEfficiency.toFixed(1)),
-
-        turbine_health:
-          94,
-
-        turbine_status:
-          "ONLINE",
-
-        maintenance_required:
-          false,
-
-
-        // Charts
         generationHistory,
-
-        powerCurveData,
-
-
-        // Wind farm
-        turbines,
-
-        totalAvailablePower:
-          Number(totalAvailablePower.toFixed(2)),
-
-        currentLoad,
-
-        surplusPower:
-          Number(surplusPower.toFixed(2)),
-
       });
-
     } catch (err) {
-
-      console.error(
-        "Wind API error:",
-        err
-      );
-
+      console.error("Wind API error:", err);
       setError(err.message);
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
-
   useEffect(() => {
-
     fetchWindData();
-
-    // Refresh weather data every 5 minutes
-    const interval =
-      setInterval(
-        fetchWindData,
-        5 * 60 * 1000
-      );
-
-    return () =>
-      clearInterval(interval);
-
-  }, []);
-
+    const interval = setInterval(fetchWindData, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [plantCapacity, alternatorVoltage, vibrationLevel, generatorTemp, gearboxTemp]);
 
   return {
     data,
     loading,
     error,
+    plantCapacity,
+    setPlantCapacity,
+    alternatorVoltage,
+    setAlternatorVoltage,
+    vibrationLevel,
+    setVibrationLevel,
+    generatorTemp,
+    setGeneratorTemp,
+    gearboxTemp,
+    setGearboxTemp,
+    refetch: fetchWindData,
   };
 }
